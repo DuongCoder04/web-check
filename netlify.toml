@@ -18,6 +18,10 @@
   # GOOGLE_CLOUD_API_KEY=''     # Google Cloud API key, for the quality and Safe Browsing checks
   # SHODAN_API_KEY=''           # Shodan API key, for host names, server info and vulnerabilities
 
+# Ship the tracker database with the function that reads it
+[functions.trackers]
+  included_files = ["node_modules/@ghostery/trackerdb/dist/trackerdb.engine"]
+
 # Rewrite the /api/* path to the lambda functions
 [[redirects]]
   from = "/api/*"

@@ -1,5 +1,6 @@
 import chromium from '@sparticuz/chromium';
 import middleware from './_common/middleware.js';
+import { isBrowserMissing } from './_common/browser.js';
 
 // Wappalyzer reads CHROMIUM_BIN at module load, so we must resolve
 // the path before importing it (hence the dynamic import in the handler)
@@ -34,7 +35,7 @@ const techStackHandler = async (url) => {
     }
     return results;
   } catch (error) {
-    if (/ENOENT|Browser was not found|Could not find Chromium/i.test(error.message)) {
+    if (isBrowserMissing(error)) {
       return { skipped: error.message };
     }
     throw new Error(error.message);

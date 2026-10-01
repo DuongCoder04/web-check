@@ -7,14 +7,17 @@
     }
   ],
   "functions": {
+    "api/trackers.js": {
+      "maxDuration": 45,
+      "includeFiles": "node_modules/@ghostery/trackerdb/dist/trackerdb.engine"
+    },
     "api/*.js": {
       "maxDuration": 45
     }
   },
   "env": {
     "PLATFORM": "vercel",
-    "CI": "false",
-    "CHROME_PATH": "/usr/bin/chromium"
+    "CI": "false"
   },
   "build": {
     "env": {

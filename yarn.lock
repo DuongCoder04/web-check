@@ -1019,6 +1019,48 @@
   resolved "https://registry.npmjs.org/@fortawesome/svelte-fontawesome/-/svelte-fontawesome-0.2.4.tgz"
   integrity sha512-AEC6wSm8YIDRygt1CiB7TnMcX3YKjhngdUp99IrOKGdsqK7PORoRnwyk3Sp6zW7t8XEFIEMf3UKeveLIxUSHQw==
 
+"@ghostery/adblocker-content@^2.17.3":
+  version "2.18.2"
+  resolved "https://registry.yarnpkg.com/@ghostery/adblocker-content/-/adblocker-content-2.18.2.tgz#d9139aba8b9b7858b003a41af1d821a49153c49b"
+  integrity sha512-TOe/b4KOBFEc9OjLG+wvgamGcSTIPSDBAL5YSa8lzjBsoSl8IDnfOjeJDldlLacsC/JEUMLkZIDDNknEolJVqg==
+  dependencies:
+    "@ghostery/adblocker-extended-selectors" "^2.18.2"
+
+"@ghostery/adblocker-extended-selectors@^2.17.3", "@ghostery/adblocker-extended-selectors@^2.18.2":
+  version "2.18.2"
+  resolved "https://registry.yarnpkg.com/@ghostery/adblocker-extended-selectors/-/adblocker-extended-selectors-2.18.2.tgz#acc790fd85eb3a6c6fe192b540a6e5a69e9f1922"
+  integrity sha512-doKNShBk3+czQL08UkrysHkCPeG/kNPlXvz3DH7SXxD9Y78ovWkEAhjeR+upoan3fomJJuK3dD+IrlofnjckYw==
+
+"@ghostery/adblocker@2.17.3":
+  version "2.17.3"
+  resolved "https://registry.yarnpkg.com/@ghostery/adblocker/-/adblocker-2.17.3.tgz#ce23a03f6e5c25d65edbd84523f0ff08ca1fafc2"
+  integrity sha512-E2jcCtlkdJFm0gUH1GL+99CgAGudlOpMfpWJqKUL9lfPFbEuw//xypbyLUdTJcz31eBJaHq1ql163dIJ00/m1A==
+  dependencies:
+    "@ghostery/adblocker-content" "^2.17.3"
+    "@ghostery/adblocker-extended-selectors" "^2.17.3"
+    "@ghostery/url-parser" "^1.3.1"
+    "@remusao/guess-url-type" "^2.1.0"
+    "@remusao/small" "^2.1.0"
+    "@remusao/smaz" "^2.2.0"
+    tldts-experimental "^7.0.30"
+
+"@ghostery/trackerdb@^1.0.951":
+  version "1.0.951"
+  resolved "https://registry.yarnpkg.com/@ghostery/trackerdb/-/trackerdb-1.0.951.tgz#08ff470cc212835a02328d45dd3156a83ae14a58"
+  integrity sha512-zcf8fRA2Yw1xzo3q5UAxEwaTLeFwm10jT1JJio0qzwWuecmKQSENjX00Lur50VUXIaaPhONN9iCIA+RP+x93CA==
+  dependencies:
+    "@ghostery/adblocker" "2.17.3"
+    enolib "^0.8.2"
+    iso-3166-1-alpha-2 "^1.0.2"
+    tldts-experimental "^7.0.23"
+
+"@ghostery/url-parser@^1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@ghostery/url-parser/-/url-parser-1.3.1.tgz#244069aa092e52c547c9bf2c7dd3541e0f16b028"
+  integrity sha512-QKqGi+7aDQ4RcyHyCwgEk6B9vWnsBP4Q7htaN0zPJV3ATqTKEQDtSTb9c/AN586oJUDs24YXKcwFYwNweY/YjQ==
+  dependencies:
+    tldts-experimental "^7.0.8"
+
 "@humanfs/core@^0.19.2":
   version "0.19.2"
   resolved "https://registry.npmjs.org/@humanfs/core/-/core-0.19.2.tgz"
@@ -1994,6 +2036,41 @@
     redux "^5.0.1"
     redux-thunk "^3.1.0"
     reselect "^5.1.0"
+
+"@remusao/guess-url-type@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@remusao/guess-url-type/-/guess-url-type-2.1.0.tgz#7b815ec7c8362607eef45442600c7d6d1cbe54f7"
+  integrity sha512-zI3dlTUxpjvx2GCxp9nLOSK5yEIqDCpxlAVGwb2Y49RKkS72oeNaxxo+VWS5+XQ5+Mf8Zfp9ZXIlk+G5eoEN8A==
+
+"@remusao/small@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@remusao/small/-/small-2.1.0.tgz#781a52974cc46a00e1837a6f0c5c262faaa0b95a"
+  integrity sha512-Y1kyjZp7JU7dXdyOdxHVNfoTr1XLZJTyQP36/esZUU/WRWq9XY0PV2HsE3CsIHuaTf4pvgWv2pvzvnZ//UHIJQ==
+
+"@remusao/smaz-compress@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@remusao/smaz-compress/-/smaz-compress-2.2.0.tgz#d388e6c3b3026cf97bc4af9aad29b2cd1e195808"
+  integrity sha512-TXpTPgILRUYOt2rEe0+9PC12xULPvBqeMpmipzB9A7oM4fa9Ztvy9lLYzPTd7tiQEeoNa1pmxihpKfJtsxnM/w==
+  dependencies:
+    "@remusao/trie" "^2.1.0"
+
+"@remusao/smaz-decompress@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@remusao/smaz-decompress/-/smaz-decompress-2.2.0.tgz#4b64fe902303b17713a3b9015ccfa94831a8d753"
+  integrity sha512-ERAPwxPaA0/yg4hkNU7T2S+lnp9jj1sApcQMtOyROvOQyo+Zuh6Hn/oRcXr8mmjlYzyRaC7E6r3mT1nrdHR6pg==
+
+"@remusao/smaz@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@remusao/smaz/-/smaz-2.2.0.tgz#dbec6150250ba2ad8bb8766aa9a06344ee04a96a"
+  integrity sha512-eSd3Qs0ELP/e7tU1SI5RWXcCn9KjDgvBY+KtWbL4i2QvvHhJOfdIt4v0AA3S5BbLWAr5dCEC7C4LUfogDm6q/Q==
+  dependencies:
+    "@remusao/smaz-compress" "^2.2.0"
+    "@remusao/smaz-decompress" "^2.2.0"
+
+"@remusao/trie@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@remusao/trie/-/trie-2.1.0.tgz#957a38e8a8c67dad35894b3e10bb924a8b455075"
+  integrity sha512-Er3Q8q0/2OcCJPQYJOPLmCuqO0wu7cav3SPtpjlxSbjFi1x+A1pZkkLD6c9q2rGEkGW/tkrRzfrhNMt8VQjzXg==
 
 "@rolldown/binding-android-arm-eabi@1.2.8":
   version "1.2.8"
@@ -4507,6 +4584,11 @@ end-of-stream@^1.1.0, end-of-stream@^1.4.1:
   dependencies:
     once "^1.4.0"
 
+enolib@^0.8.2:
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/enolib/-/enolib-0.8.2.tgz#cc214fd9e99df22de32ec9ac3ecab4b9ddc82cee"
+  integrity sha512-kfeb9gAi+VkOHGzuSpb1wMNPPJ9CfbLabkzWGcPW37CDxtpPgIKeBAQsG0qJmY3zNTd4nu05ZYahqpPay1vrzw==
+
 entities@^4.2.0:
   version "4.5.0"
   resolved "https://registry.npmjs.org/entities/-/entities-4.5.0.tgz"
@@ -6137,6 +6219,13 @@ isexe@^2.0.0:
   resolved "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz"
   integrity sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==
 
+iso-3166-1-alpha-2@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/iso-3166-1-alpha-2/-/iso-3166-1-alpha-2-1.0.2.tgz#48ff2176664c40da5071726a4b2322fd29b952dc"
+  integrity sha512-B9xyzPQIpVKJnEvVfjzgWA/P6c6tL6LqqxrR14NJaw2RpGtCMcyFYcwcJw6h/PYMTq7hAZp63oIhxqcfO90TRA==
+  dependencies:
+    mout "^1.2.4"
+
 jackspeak@^3.1.2:
   version "3.4.3"
   resolved "https://registry.npmjs.org/jackspeak/-/jackspeak-3.4.3.tgz"
@@ -6809,6 +6898,11 @@ motion-utils@^12.39.0:
   version "12.39.0"
   resolved "https://registry.yarnpkg.com/motion-utils/-/motion-utils-12.39.0.tgz#e1c66f0e912999804bc5e69b4630c3bc794ef29f"
   integrity sha512-8nadJAJjTtqRkmRF36FoJTrywK9nnFmnPwnSMyxaOCU7GDjN9RTMJIxx9De8ErM+vpPhMccr/6fo5WciyQLnMQ==
+
+mout@^1.2.4:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/mout/-/mout-1.2.4.tgz#9ffd261c4d6509e7ebcbf6b641a89b36ecdf8155"
+  integrity sha512-mZb9uOruMWgn/fw28DG4/yE3Kehfk1zKCLhuDU2O3vlKdnBBr4XaOCqVTflJ5aODavGUPqFHZgrFX3NJVuxGhQ==
 
 mrmime@^2.0.1:
   version "2.0.1"
@@ -8935,6 +9029,18 @@ tinyglobby@^0.2.17:
   dependencies:
     fdir "^6.5.0"
     picomatch "^4.0.4"
+
+tldts-core@^7.4.16:
+  version "7.4.16"
+  resolved "https://registry.yarnpkg.com/tldts-core/-/tldts-core-7.4.16.tgz#f4b1711fd30e5d9a742d94f6b391d8649acc8ae1"
+  integrity sha512-MDolfaSJtlSK5Y0A1xl3277ekubZwobpBjugknDizI9O5Rm60a1m8k4ICK+MRsCDzPygT81mp3BBf5RKDlFRfA==
+
+tldts-experimental@^7.0.23, tldts-experimental@^7.0.30, tldts-experimental@^7.0.8:
+  version "7.4.16"
+  resolved "https://registry.yarnpkg.com/tldts-experimental/-/tldts-experimental-7.4.16.tgz#da9b56cc976385f8bb92d867ac4cd4c95a406f29"
+  integrity sha512-H1gI3Toi/7PoMRmBIX9K2cyWIEdxjW0F4ygsVRtsCM1thOZwa3zFc8SowUttgd0UhVUR2ahRbgUHEKrxj7WZ3w==
+  dependencies:
+    tldts-core "^7.4.16"
 
 tmp-promise@^3.0.2, tmp-promise@^3.0.3:
   version "3.0.3"
