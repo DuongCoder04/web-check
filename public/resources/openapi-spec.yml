@@ -298,6 +298,53 @@ paths:
           $ref: '#/components/responses/MissingParam'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /caa-records:
+    get:
+      summary: Retrieve the CAA records listing which CAs may issue certificates for the domain
+      tags:
+        - Security
+      parameters:
+        - name: url
+          in: query
+          required: true
+          description: The URL to fetch results about
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  domain:
+                    type: string
+                    description: The host or closest parent the records came from, or the host when none have any
+                    example: 'github.com'
+                  records:
+                    type: array
+                    description: The CAA records, empty when neither the host nor any parent has one
+                    items:
+                      type: object
+                      properties:
+                        tag:
+                          type: string
+                          description: The property, like issue, issuewild or iodef
+                          example: 'issue'
+                        value:
+                          type: string
+                          example: 'letsencrypt.org'
+                        critical:
+                          type: boolean
+                          description: Whether CAs that don't know the tag must refuse to issue
+                          example: false
+        '204':
+          $ref: '#/components/responses/Skipped'
+        '500':
+          $ref: '#/components/responses/Error'
+        '400':
+          $ref: '#/components/responses/MissingParam'
   /carbon:
     get:
       summary: Retrieve carbon data

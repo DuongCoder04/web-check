@@ -20,6 +20,7 @@ import vulnerabilities from './vulnerabilities';
 import whoisLookup from './whois-lookup';
 import domainInfo from './domain-info';
 import dnssec from './dnssec';
+import caaRecords from './caa-records';
 import hsts from './hsts';
 import dnsServer from './dns-server';
 import techStack from './tech-stack';
@@ -76,6 +77,7 @@ const all = {
   'whois-lookup': whoisLookup,
   'domain-info': domainInfo,
   dnssec,
+  'caa-records': caaRecords,
   hsts,
   'dns-server': dnsServer,
   'tech-stack': techStack,

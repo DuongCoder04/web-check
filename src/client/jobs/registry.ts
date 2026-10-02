@@ -21,6 +21,7 @@ import OpenPortsCard from 'client/components/Results/OpenPorts';
 import TraceRouteCard from 'client/components/Results/TraceRoute';
 import CarbonFootprintCard from 'client/components/Results/CarbonFootprint';
 import DnsSecCard from 'client/components/Results/DnsSec';
+import CaaRecordsCard from 'client/components/Results/CaaRecords';
 import HstsCard from 'client/components/Results/Hsts';
 import SitemapCard from 'client/components/Results/Sitemap';
 import DomainLookup from 'client/components/Results/DomainLookup';
@@ -261,6 +262,12 @@ export const jobs: JobSpec[] = [
     expectedAddressTypes: [...URL_ONLY],
     cards: [card('dnssec', DnsSecCard)],
     fetcher: fetchAndProcess('dnssec?url=${url}'),
+  },
+  {
+    id: 'caa-records',
+    expectedAddressTypes: [...URL_ONLY],
+    cards: [card('caa-records', CaaRecordsCard)],
+    fetcher: fetchAndProcess('caa-records?url=${url}'),
   },
   {
     id: 'hsts',
