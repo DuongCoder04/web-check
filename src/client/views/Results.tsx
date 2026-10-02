@@ -134,7 +134,7 @@ const Results = (props: { address?: string }): JSX.Element => {
 
   // Show the loader until the first few checks have settled
   const settled = loadingJobs.filter((j) => j.state !== 'loading').length;
-  const loading = settled < Math.min(5, loadingJobs.length);
+  const loading = settled < Math.min(35, loadingJobs.length);
 
   // Detect a catastrophic API outage when the bulk of settled jobs error or time out
   const apiUnreachable = useMemo(() => {
@@ -181,7 +181,7 @@ const Results = (props: { address?: string }): JSX.Element => {
         <NoResults kind={errorKind} address={address} error={ipLookupError || skipReason} />
       )}
       <ProgressBar loadStatus={loadingJobs} showModal={showErrorModal} showJobDocs={showInfo} />
-      <Loader show={loading} />
+      <Loader show={loading} jobs={loadingJobs} />
       {!errorKind && (
         <>
           <AdvisoryPanel findings={findings} onJumpTo={jumpToCard} />

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import styled from '@emotion/styled';
 import colors from 'client/styles/colors';
 import Card from 'client/components/Form/Card';
@@ -408,7 +408,7 @@ interface ProgressLoaderProps {
 
 // Top-of-results progress bar with collapsible per-job detail and error modals
 const ProgressLoader = ({ loadStatus, showModal, showJobDocs }: ProgressLoaderProps): ReactNode => {
-  const [hideLoader, setHideLoader] = useState(false);
+  const [hideLoader, setHideLoader] = useState(true);
   const [elapsedMs, setElapsedMs] = useState(0);
   const percentages = stateToPercent(loadStatus);
   const isDone = !loadStatus.some((j) => j.state === 'loading');
@@ -419,20 +419,6 @@ const ProgressLoader = ({ loadStatus, showModal, showJobDocs }: ProgressLoaderPr
     const id = setInterval(() => setElapsedMs((v) => v + 100), 100);
     return () => clearInterval(id);
   }, [isDone]);
-
-  // Auto-collapse once when 75% of jobs have settled
-  const autoCollapsedRef = useRef(false);
-  const autoCollapse = useCallback(() => {
-    if (autoCollapsedRef.current) return;
-    autoCollapsedRef.current = true;
-    setHideLoader(true);
-  }, []);
-
-  useEffect(() => {
-    const total = loadStatus.length || 1;
-    const settled = loadStatus.filter((j) => j.state !== 'loading').length;
-    if (settled / total >= 0.75) autoCollapse();
-  }, [loadStatus, autoCollapse]);
 
   const showErrorModal = (job: LoadingJob, isInfo?: boolean) => {
     const detailsLabel = job.state === 'skipped' ? 'Reason:' : 'Server response:';
