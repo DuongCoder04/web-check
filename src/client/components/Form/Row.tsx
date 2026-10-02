@@ -13,6 +13,7 @@ export interface RowProps {
   open?: boolean;
   plaintext?: string;
   listResults?: string[];
+  link?: string;
 }
 
 export const StyledRow = styled.div`
@@ -123,6 +124,16 @@ const formatValue = (value: any): string => {
   return value;
 };
 
+// Format a value, as a link when given one
+const showValue = (value: any, link?: string): ReactNode =>
+  link ? (
+    <a href={link} target="_blank" rel="noreferrer">
+      {formatValue(value)}
+    </a>
+  ) : (
+    formatValue(value)
+  );
+
 const copyToClipboard = (text: string | boolean) => {
   navigator.clipboard.writeText(String(text));
 };
@@ -157,7 +168,7 @@ export const ExpandableRow = (props: RowProps) => {
                   title={row.val?.toString()}
                   onClick={() => copyToClipboard(row.val)}
                 >
-                  {formatValue(row.val)}
+                  {showValue(row.val, row.link)}
                 </span>
                 {row.plaintext && <PlainText>{row.plaintext}</PlainText>}
                 {row.listResults && (
@@ -195,7 +206,7 @@ export const ListRow = (props: { list: string[]; title: string }) => {
 };
 
 const Row = (props: RowProps) => {
-  const { lbl, val, title, plaintext, listResults, children } = props;
+  const { lbl, val, title, plaintext, listResults, link, children } = props;
   if (children) return <StyledRow key={`${lbl}-${val}`}>{children}</StyledRow>;
   return (
     <StyledRow key={`${lbl}-${val}`}>
@@ -205,7 +216,7 @@ const Row = (props: RowProps) => {
         </span>
       )}
       <span className="val" title={val?.toString()} onClick={() => copyToClipboard(val)}>
-        {formatValue(val)}
+        {showValue(val, link)}
       </span>
       {plaintext && <PlainText>{plaintext}</PlainText>}
       {listResults && (

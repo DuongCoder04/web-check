@@ -1,3 +1,4 @@
+import net from 'net';
 import psl from 'psl';
 
 // Wrap bare IPv6 in brackets for URL parsing (2+ colons = IPv6)
@@ -30,6 +31,6 @@ export const parseTarget = (input) => {
 };
 
 // Reduce a hostname to its registrable domain, ignoring subdomains
-export const baseDomain = (host) => psl.parse(host)?.domain || host;
+export const baseDomain = (host) => (net.isIP(host) ? host : psl.parse(host)?.domain || host);
 
 export default parseTarget;

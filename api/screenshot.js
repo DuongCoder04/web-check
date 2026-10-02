@@ -1,11 +1,10 @@
-import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
 import { randomUUID } from 'crypto';
 import { execFile } from 'child_process';
 import { promises as fs } from 'fs';
 import path from 'path';
 import middleware from './_common/middleware.js';
 import { createLogger } from './_common/logger.js';
+import { launchBrowser, closeBrowser, isBrowserMissing } from './_common/browser.js';
 
 const log = createLogger('screenshot');
 
@@ -45,14 +44,7 @@ const directChromiumScreenshot = async (url) => {
 const puppeteerScreenshot = async (targetUrl) => {
   let browser = null;
   try {
-    browser = await puppeteer.launch({
-      args: [...chromium.args, '--no-sandbox'],
-      defaultViewport: { width: 800, height: 600 },
-      executablePath: process.env.CHROME_PATH || (await chromium.executablePath()),
-      headless: true,
-      acceptInsecureCerts: true,
-      ignoreDefaultArgs: ['--disable-extensions'],
-    });
+    browser = await launchBrowser({ defaultViewport: { width: 800, height: 600 } });
     const page = await browser.newPage();
     await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'dark' }]);
     page.setDefaultNavigationTimeout(8000);
@@ -65,7 +57,7 @@ const puppeteerScreenshot = async (targetUrl) => {
     const buffer = await page.screenshot();
     return buffer.toString('base64');
   } finally {
-    if (browser) await browser.close().catch(() => {});
+    if (browser) await closeBrowser(browser);
   }
 };
 
@@ -86,7 +78,7 @@ const screenshotHandler = async (targetUrl) => {
   try {
     return { image: await puppeteerScreenshot(targetUrl) };
   } catch (error) {
-    if (/ENOENT|Browser was not found|Could not find Chromium/i.test(error.message)) {
+    if (isBrowserMissing(error)) {
       return { skipped: error.message };
     }
     log.error(`puppeteer screenshot failed: ${error.message}`);

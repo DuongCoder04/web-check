@@ -11,6 +11,7 @@ import ScreenshotCard from 'client/components/Results/Screenshot';
 import SslCertCard from 'client/components/Results/SslCert';
 import HeadersCard from 'client/components/Results/Headers';
 import CookiesCard from 'client/components/Results/Cookies';
+import TrackersCard from 'client/components/Results/Trackers';
 import RobotsTxtCard from 'client/components/Results/RobotsTxt';
 import DnsRecordsCard from 'client/components/Results/DnsRecords';
 import RedirectsCard from 'client/components/Results/Redirects';
@@ -185,6 +186,12 @@ export const jobs: JobSpec[] = [
     expectedAddressTypes: [...URL_ONLY],
     cards: [card('cookies', CookiesCard)],
     fetcher: fetchAndProcess('cookies?url=${url}'),
+  },
+  {
+    id: 'trackers',
+    expectedAddressTypes: [...URL_ONLY],
+    cards: [card('trackers', TrackersCard)],
+    fetcher: fetchAndProcess('trackers?url=${url}'),
   },
   {
     id: 'headers',

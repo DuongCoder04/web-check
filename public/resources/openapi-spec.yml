@@ -2992,6 +2992,87 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /trackers:
+    get:
+      summary: List the trackers and other third parties a page loads, via TrackerDB and EasyPrivacy
+      tags:
+        - Client-Side Information
+      parameters:
+        - name: url
+          in: query
+          required: true
+          description: The URL to fetch results about
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requests:
+                    type: integer
+                    description: Unique requests the page made while loading
+                    example: 170
+                  trackers:
+                    type: array
+                    description: Known third parties, grouped by service, sorted by category
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: 'Google Analytics'
+                        category:
+                          type: string
+                          description: What the service does, as classified by TrackerDB
+                          example: 'Site Analytics'
+                        company:
+                          type: string
+                          description: The organisation behind the service
+                          example: 'Google'
+                        country:
+                          type: string
+                          nullable: true
+                          description: Two-letter code of the country the company is based in
+                          example: 'US'
+                        privacyPolicy:
+                          type: string
+                          nullable: true
+                          description: Link to the company's privacy policy
+                          example: 'https://policies.google.com/privacy'
+                        hosts:
+                          type: array
+                          description: Hostnames the page contacted for this service
+                          items:
+                            type: string
+                          example: ['www.google-analytics.com']
+                        requests:
+                          type: integer
+                          description: Number of requests matched to this service
+                          example: 3
+                  otherTrackers:
+                    type: array
+                    description: Hosts not named by TrackerDB, but with requests flagged by EasyPrivacy
+                    items:
+                      type: string
+                    example: ['a1.api.bbc.co.uk']
+                  unknown:
+                    type: array
+                    description: Third-party hosts not recognised by either list
+                    items:
+                      type: string
+                    example: ['cdn.example.net']
+        '204':
+          $ref: '#/components/responses/Skipped'
+        '500':
+          $ref: '#/components/responses/Error'
+        '400':
+          $ref: '#/components/responses/MissingParam'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /txt-records:
     get:
       summary: Retrieve the TXT records for a specified domain

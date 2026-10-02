@@ -13,6 +13,7 @@ import breaches from './rules/breaches';
 import blockLists from './rules/block-lists';
 import firewall from './rules/firewall';
 import cookies from './rules/cookies';
+import trackers from './rules/trackers';
 import headers from './rules/headers';
 import ports from './rules/ports';
 import mailConfig from './rules/mail-config';
@@ -40,6 +41,7 @@ export const analyzers: Partial<Record<CheckId, Analyzer>> = {
   'block-lists': blockLists,
   firewall,
   cookies,
+  trackers,
   headers,
   ports,
   'mail-config': mailConfig,

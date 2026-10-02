@@ -132,6 +132,10 @@ const Results = (props: { address?: string }): JSX.Element => {
 
   const findings = useMemo(() => runAnalysis(jobsState), [jobsState]);
 
+  // Show the loader until the first few checks have settled
+  const settled = loadingJobs.filter((j) => j.state !== 'loading').length;
+  const loading = settled < Math.min(35, loadingJobs.length);
+
   // Detect a catastrophic API outage when the bulk of settled jobs error or time out
   const apiUnreachable = useMemo(() => {
     const entries = Object.values(jobsState);
@@ -177,11 +181,7 @@ const Results = (props: { address?: string }): JSX.Element => {
         <NoResults kind={errorKind} address={address} error={ipLookupError || skipReason} />
       )}
       <ProgressBar loadStatus={loadingJobs} showModal={showErrorModal} showJobDocs={showInfo} />
-      <Loader
-        show={
-          loadingJobs.filter((j) => j.state !== 'loading').length < Math.min(5, loadingJobs.length)
-        }
-      />
+      <Loader show={loading} jobs={loadingJobs} />
       {!errorKind && (
         <>
           <AdvisoryPanel findings={findings} onJumpTo={jumpToCard} />
@@ -205,19 +205,23 @@ const Results = (props: { address?: string }): JSX.Element => {
               ))}
             </ResultsMasonryGrid>
           </ResultsContent>
-          <ViewRaw
-            everything={renderable.map((r) => ({
-              id: r.card.id,
-              title: r.card.title,
-              result: r.data,
-            }))}
-          />
+          {!loading && (
+            <ViewRaw
+              everything={renderable.map((r) => ({
+                id: r.card.id,
+                title: r.card.title,
+                result: r.data,
+              }))}
+            />
+          )}
         </>
       )}
-      <AdditionalResources
-        url={address}
-        categories={check ? checks[check].categories : category && [category]}
-      />
+      {!loading && (
+        <AdditionalResources
+          url={address}
+          categories={check ? checks[check].categories : category && [category]}
+        />
+      )}
 
       <Modal isOpen={modalOpen} closeModal={() => setModalOpen(false)}>
         {modalContent}
