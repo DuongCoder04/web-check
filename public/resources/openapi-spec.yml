@@ -1356,6 +1356,88 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /mixed-content:
+    get:
+      summary: Find insecure resources on the page, and third-party scripts without SRI
+      tags:
+        - Security
+      parameters:
+        - name: url
+          in: query
+          required: true
+          description: The URL to fetch results about
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    description: The page checked, after any redirects
+                    example: 'https://example.com/'
+                  upgradeInsecureRequests:
+                    type: boolean
+                    description: Whether the page's CSP upgrades its HTTP requests to HTTPS
+                    example: false
+                  integrityPolicy:
+                    type: boolean
+                    description: Whether the Integrity-Policy header makes browsers refuse scripts without SRI
+                    example: false
+                  active:
+                    type: array
+                    description: HTTP scripts, stylesheets (including inline CSS imports), frames and plugins (HTTPS pages only)
+                    items:
+                      type: string
+                      example: 'http://example.com/app.js'
+                  passive:
+                    type: array
+                    description: HTTP images, media, icons and inline CSS url() values (HTTPS pages only)
+                    items:
+                      type: string
+                      example: 'http://example.com/logo.png'
+                  forms:
+                    type: array
+                    description: HTTP addresses that forms submit to (HTTPS pages only)
+                    items:
+                      type: string
+                      example: 'http://example.com/login'
+                  thirdPartyScripts:
+                    type: integer
+                    description: Number of distinct scripts the page HTML loads from other domains
+                    example: 3
+                  missingIntegrity:
+                    type: object
+                    description: Third-party scripts with no valid SRI hash
+                    properties:
+                      versioned:
+                        type: array
+                        description: Scripts pinned to one release by a version number or content hash in the path, which can take a hash
+                        items:
+                          type: string
+                          example: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js'
+                      unversioned:
+                        type: array
+                        description: Scripts with no version in the path, which can change at any time
+                        items:
+                          type: string
+                          example: 'https://www.googletagmanager.com/gtag/js?id=G-XXXX'
+                  missingCrossorigin:
+                    type: array
+                    description: Cross-origin scripts with an SRI hash but no crossorigin attribute, which browsers refuse to run
+                    items:
+                      type: string
+                      example: 'https://cdn.example.net/lib.js'
+        '204':
+          $ref: '#/components/responses/Skipped'
+        '500':
+          $ref: '#/components/responses/Error'
+        '400':
+          $ref: '#/components/responses/MissingParam'
   /ports:
     get:
       summary: Retrieve open and failed ports data

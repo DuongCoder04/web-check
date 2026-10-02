@@ -32,6 +32,7 @@ import socialPresence from './social-presence';
 import mailConfig from './mail-config';
 import firewall from './firewall';
 import httpSecurity from './http-security';
+import mixedContent from './mixed-content';
 import archives from './archives';
 import rank from './rank';
 import blockLists from './block-lists';
@@ -89,6 +90,7 @@ const all = {
   'mail-config': mailConfig,
   firewall,
   'http-security': httpSecurity,
+  'mixed-content': mixedContent,
   archives,
   rank,
   'block-lists': blockLists,

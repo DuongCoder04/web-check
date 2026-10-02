@@ -33,6 +33,7 @@ import SocialTagsCard from 'client/components/Results/SocialTags';
 import SocialPresenceCard from 'client/components/Results/SocialPresence';
 import MailConfigCard from 'client/components/Results/MailConfig';
 import HttpSecurityCard from 'client/components/Results/HttpSecurity';
+import MixedContentCard from 'client/components/Results/MixedContent';
 import FirewallCard from 'client/components/Results/Firewall';
 import ArchivesCard from 'client/components/Results/Archives';
 import RankCard from 'client/components/Results/Rank';
@@ -211,6 +212,12 @@ export const jobs: JobSpec[] = [
     expectedAddressTypes: [...URL_ONLY],
     cards: [card('http-security', HttpSecurityCard)],
     fetcher: fetchAndProcess('http-security?url=${url}'),
+  },
+  {
+    id: 'mixed-content',
+    expectedAddressTypes: [...URL_ONLY],
+    cards: [card('mixed-content', MixedContentCard)],
+    fetcher: fetchAndProcess('mixed-content?url=${url}'),
   },
   {
     id: 'tls-connection',

@@ -3,7 +3,7 @@ import { readFile } from 'fs/promises';
 import trackerdb from '@ghostery/trackerdb';
 import { FiltersEngine, Request } from '@ghostery/adblocker';
 import middleware from './_common/middleware.js';
-import { httpGet, UA } from './_common/http.js';
+import { httpGet, UA, isBotCheck } from './_common/http.js';
 import { createLogger } from './_common/logger.js';
 import { baseDomain } from './_common/parse-target.js';
 import { launchBrowser, closeBrowser, isBrowserMissing } from './_common/browser.js';
@@ -45,7 +45,7 @@ const getEasyPrivacy = async () => {
 const isPage = (page, req) => req.isNavigationRequest() && req.frame() === page.mainFrame();
 
 // True for bot check pages (like Cloudflare's or AWS WAF's), which reload once passed
-const isChallenge = (res) => res.status() === 202 || res.headers()['cf-mitigated'] === 'challenge';
+const isChallenge = (res) => isBotCheck(res.status(), res.headers());
 
 // Wait for a bot check to pass and the real page to arrive, else keep the check's response
 const passChallenge = (page, response) => {

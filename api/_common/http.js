@@ -1,6 +1,6 @@
 // Thin fetch wrapper matching the axios shape used across the api: opts.params,
 // opts.headers, opts.auth, opts.timeout, opts.validateStatus; returns
-// { data, status, statusText, headers }; throws errors with response/code
+// { data, status, statusText, headers, url }; throws errors with response/code
 
 const DEFAULT_TIMEOUT = 60000;
 
@@ -65,6 +65,10 @@ export const UA =
   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
   'Chrome/120.0.0.0 Safari/537.36 (compatible; web-check/1.0; +https://web-check.xyz)';
 
+// True for bot check pages (like Cloudflare's or AWS WAF's), served instead of the real page
+export const isBotCheck = (status, headers) =>
+  status === 202 || headers['cf-mitigated'] === 'challenge';
+
 const send = async (method, url, body, opts = {}) => {
   const finalUrl = appendParams(url, opts.params);
   const headers = { 'user-agent': UA, ...opts.headers };
@@ -101,6 +105,7 @@ const send = async (method, url, body, opts = {}) => {
     status: response.status,
     statusText: response.statusText,
     headers: headersToObject(response.headers),
+    url: response.url,
   };
 
   if (!isOk(response.status, opts.validateStatus)) {
