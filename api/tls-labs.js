@@ -1,5 +1,5 @@
 import middleware from './_common/middleware.js';
-import { httpGet } from './_common/http.js';
+import { httpGet, APP_UA } from './_common/http.js';
 import { parseTarget } from './_common/parse-target.js';
 import { upstreamError } from './_common/upstream.js';
 
@@ -11,7 +11,7 @@ const tlsLabsHandler = async (url) => {
   try {
     const res = await httpGet(SSL_LABS, {
       params: { host: hostname, fromCache: 'on', maxAge: 168, all: 'done' },
-      headers: { 'User-Agent': 'web-check (https://web-check.xyz)' },
+      headers: { 'user-agent': APP_UA },
     });
     const data = res.data;
     if (data?.status === 'READY' && data.endpoints?.length) return data;

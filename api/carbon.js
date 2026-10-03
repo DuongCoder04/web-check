@@ -1,11 +1,12 @@
 import middleware from './_common/middleware.js';
-import { UA } from './_common/http.js';
+import { UA, isBotCheck, BOT_CHECK_ERROR } from './_common/http.js';
 import { createLogger } from './_common/logger.js';
 
 const log = createLogger('carbon');
 
 const TIMEOUT = 8000;
 const MAX_BYTES = 10 * 1024 * 1024;
+const START_CHARS = 16 * 1024;
 
 // Sustainable Web Design model v4 constants, matches websitecarbon.com formula
 const KWH_PER_GB = 0.3;
@@ -26,24 +27,26 @@ const estimateCleanerThan = (grams) => {
   return Math.max(1, Math.min(95, Math.round(pct)));
 };
 
-// Stream the response, cap at MAX_BYTES so huge pages can't blow memory or time
-const fetchByteCount = async (url) => {
+// Stream the page, capped at MAX_BYTES, keeping its start to spot bot checks
+const fetchPage = async (url) => {
   const r = await fetch(url, {
     signal: AbortSignal.timeout(TIMEOUT),
     redirect: 'follow',
     headers: { 'user-agent': UA, accept: 'text/html,*/*;q=0.1' },
   });
   if (!r.ok) throw new Error(`status ${r.status}`);
-  if (!r.body) return 0;
+  const page = { status: r.status, headers: Object.fromEntries(r.headers), data: '', bytes: 0 };
+  if (!r.body) return page;
   const reader = r.body.getReader();
-  let total = 0;
-  while (total < MAX_BYTES) {
+  const decoder = new TextDecoder();
+  while (page.bytes < MAX_BYTES) {
     const { value, done } = await reader.read();
     if (done) break;
-    total += value.length;
+    if (page.data.length < START_CHARS) page.data += decoder.decode(value, { stream: true });
+    page.bytes += value.length;
   }
   reader.cancel().catch(() => {});
-  return total;
+  return page;
 };
 
 // SWD-based stats matching websitecarbon /data response shape
@@ -67,13 +70,15 @@ const computeCarbon = (bytes) => {
 
 // Fetch site, count bytes, compute SWD carbon stats locally, no third-party API
 const carbonHandler = async (url) => {
-  let bytes;
+  let page;
   try {
-    bytes = await fetchByteCount(url);
+    page = await fetchPage(url);
   } catch (error) {
     log.warn(`fetch failed for ${url}`, error.message);
     return { error: `Failed to fetch site: ${error.message}` };
   }
+  if (isBotCheck(page)) return BOT_CHECK_ERROR;
+  const { bytes } = page;
   if (!bytes) return { skipped: 'Site returned no content, cannot calculate carbon' };
   log.debug(`measured ${bytes} bytes for ${url}`);
   const statistics = computeCarbon(bytes);

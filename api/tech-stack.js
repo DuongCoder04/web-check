@@ -1,5 +1,6 @@
 import chromium from '@sparticuz/chromium';
 import middleware from './_common/middleware.js';
+import { UA } from './_common/http.js';
 import { isBrowserMissing } from './_common/browser.js';
 
 // Wappalyzer reads CHROMIUM_BIN at module load, so we must resolve
@@ -24,7 +25,7 @@ const ensureChromiumBin = async () => {
 const techStackHandler = async (url) => {
   await ensureChromiumBin();
   const { default: Wappalyzer } = await import('wappalyzer');
-  const wappalyzer = new Wappalyzer({});
+  const wappalyzer = new Wappalyzer({ userAgent: UA });
 
   try {
     await wappalyzer.init();

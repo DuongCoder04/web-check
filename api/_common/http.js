@@ -61,17 +61,33 @@ const wrapNetworkError = (error) => {
   return error;
 };
 
+// A current desktop Chrome user agent, so basic bot checks treat requests like a browser's
 export const UA =
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
-  'Chrome/120.0.0.0 Safari/537.36 (compatible; web-check/1.0; +https://web-check.xyz)';
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
+  'Chrome/154.0.0.0 Safari/537.36';
 
-// True for bot check pages (like Cloudflare's or AWS WAF's), served instead of the real page
-export const isBotCheck = (status, headers) =>
-  status === 202 || headers['cf-mitigated'] === 'challenge';
+// Our own user agent, for APIs and files meant for tools, which ask clients to say who they are
+export const APP_UA = 'web-check (+https://web-check.xyz)';
+
+// Headers that Cloudflare, Vercel and AWS WAF add when they challenge or block a request
+const BOT_CHECK_HEADERS = ['cf-mitigated', 'x-vercel-mitigated', 'x-amzn-waf-action'];
+
+// True for bot check pages (like Cloudflare's, AWS WAF's or Akamai's), served instead of the site
+export const isBotCheck = ({ status, headers, data }) =>
+  status === 202 ||
+  BOT_CHECK_HEADERS.some((name) => headers[name]) ||
+  String(data ?? '').includes('_sec/verify?provider=interstitial');
+
+// The result for a check that only got a bot check back
+export const BOT_CHECK_ERROR = { error: "Site returned a bot check, so couldn't be checked" };
 
 const send = async (method, url, body, opts = {}) => {
   const finalUrl = appendParams(url, opts.params);
-  const headers = { 'user-agent': UA, ...opts.headers };
+  const headers = { 'user-agent': UA };
+  // Lowercase names, so a caller's header replaces the default instead of joining it
+  for (const [name, value] of Object.entries(opts.headers ?? {})) {
+    headers[name.toLowerCase()] = value;
+  }
   const authHeader = buildAuth(opts.auth);
   if (authHeader) headers.authorization = authHeader;
 
@@ -85,8 +101,7 @@ const send = async (method, url, body, opts = {}) => {
   if (body !== undefined && body !== null) {
     if (typeof body === 'object') {
       init.body = JSON.stringify(body);
-      const hasCt = Object.keys(headers).some((k) => k.toLowerCase() === 'content-type');
-      if (!hasCt) init.headers['content-type'] = 'application/json';
+      headers['content-type'] ??= 'application/json';
     } else {
       init.body = body;
     }

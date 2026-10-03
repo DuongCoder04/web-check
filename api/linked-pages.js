@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import urlLib from 'url';
 import middleware from './_common/middleware.js';
-import { httpGet } from './_common/http.js';
+import { httpGet, isBotCheck, BOT_CHECK_ERROR } from './_common/http.js';
 import { upstreamError } from './_common/upstream.js';
 
 const linkedPagesHandler = async (url) => {
@@ -11,6 +11,7 @@ const linkedPagesHandler = async (url) => {
   } catch (error) {
     return upstreamError(error, 'Linked pages fetch');
   }
+  if (isBotCheck(response)) return BOT_CHECK_ERROR;
   const html = response.data;
   const $ = cheerio.load(html);
   const internalLinksMap = new Map();

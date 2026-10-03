@@ -1,6 +1,6 @@
 import { URL } from 'url';
 import middleware from './_common/middleware.js';
-import { httpGet } from './_common/http.js';
+import { httpGet, isBotCheck, BOT_CHECK_ERROR, APP_UA } from './_common/http.js';
 
 // RFC 9116 recommends .well-known first, legacy /security.txt as fallback
 const SECURITY_TXT_PATHS = ['/.well-known/security.txt', '/security.txt'];
@@ -47,7 +47,9 @@ const securityTxtHandler = async (urlParam) => {
 
   for (let path of SECURITY_TXT_PATHS) {
     try {
-      const result = await fetchSecurityTxt(url, path);
+      const res = await fetchSecurityTxt(url, path);
+      if (isBotCheck(res)) return BOT_CHECK_ERROR;
+      const result = res.status === 200 ? res.data : null;
       if (result && result.toLowerCase().includes('<html')) continue;
       if (result) {
         return {
@@ -66,14 +68,10 @@ const securityTxtHandler = async (urlParam) => {
   return { isPresent: false };
 };
 
-// Returns the file body when the path 200s, else null so the next path is tried
+// Fetch one candidate path, whatever status it returns
 const fetchSecurityTxt = async (baseURL, path) => {
   const url = new URL(path, baseURL);
-  const res = await httpGet(url.toString(), {
-    headers: { 'User-Agent': 'curl/8.0.0' },
-    validateStatus: () => true,
-  });
-  return res.status === 200 ? res.data : null;
+  return httpGet(url.toString(), { headers: { 'user-agent': APP_UA }, validateStatus: () => true });
 };
 
 export const handler = middleware(securityTxtHandler);

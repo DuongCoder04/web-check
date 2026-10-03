@@ -1,5 +1,5 @@
 import middleware from './_common/middleware.js';
-import { httpGet } from './_common/http.js';
+import { httpGet, isBotCheck, BOT_CHECK_ERROR } from './_common/http.js';
 
 // Security headers to check, mapped to response field names
 const HEADERS = {
@@ -17,9 +17,9 @@ const HEADERS = {
 
 const httpsSecHandler = async (url) => {
   try {
-    const { headers } = await httpGet(url, {
-      validateStatus: () => true,
-    });
+    const response = await httpGet(url, { validateStatus: () => true });
+    if (isBotCheck(response)) return BOT_CHECK_ERROR;
+    const { headers } = response;
     return Object.fromEntries(Object.entries(HEADERS).map(([h, key]) => [key, !!headers[h]]));
   } catch (error) {
     return { error: `Unable to fetch headers: ${error.message}` };

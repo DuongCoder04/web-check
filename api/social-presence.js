@@ -1,7 +1,7 @@
 import dns from 'dns/promises';
 import * as cheerio from 'cheerio';
 import middleware from './_common/middleware.js';
-import { httpGet } from './_common/http.js';
+import { httpGet, isBotCheck, BOT_CHECK_ERROR, APP_UA } from './_common/http.js';
 import { upstreamError } from './_common/upstream.js';
 import { parseTarget, baseDomain } from './_common/parse-target.js';
 import { safeUrl, hostOf, X_HANDLE, normalizeXHandle } from './_common/social.js';
@@ -163,6 +163,7 @@ const lookupGithub = (handle) => {
     {
       headers: {
         Accept: 'application/vnd.github+json',
+        'user-agent': APP_UA,
         ...(token && { Authorization: `Bearer ${token}` }),
       },
     },
@@ -308,6 +309,7 @@ const socialPresenceHandler = async (url) => {
   } catch (error) {
     return upstreamError(error, 'Social presence fetch');
   }
+  if (isBotCheck(response)) return BOT_CHECK_ERROR;
 
   try {
     const discovered = discover(cheerio.load(response.data));

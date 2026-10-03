@@ -4,7 +4,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import middleware from './_common/middleware.js';
 import { createLogger } from './_common/logger.js';
-import { launchBrowser, closeBrowser, isBrowserMissing } from './_common/browser.js';
+import { UA } from './_common/http.js';
+import { launchBrowser, openPage, closeBrowser, isBrowserMissing } from './_common/browser.js';
 
 const log = createLogger('screenshot');
 
@@ -22,6 +23,7 @@ const directChromiumScreenshot = async (url) => {
       '--no-sandbox',
       // Headless picks its own size otherwise, this keeps it matching the puppeteer fallback
       '--window-size=800,600',
+      `--user-agent=${UA}`,
       `--screenshot=${screenshotPath}`,
       url,
     ];
@@ -45,7 +47,7 @@ const puppeteerScreenshot = async (targetUrl) => {
   let browser = null;
   try {
     browser = await launchBrowser({ defaultViewport: { width: 800, height: 600 } });
-    const page = await browser.newPage();
+    const page = await openPage(browser);
     await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'dark' }]);
     page.setDefaultNavigationTimeout(8000);
     await page.goto(targetUrl, { waitUntil: 'domcontentloaded' });

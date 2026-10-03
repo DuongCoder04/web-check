@@ -10,11 +10,10 @@ const getPuppeteerCookies = async (url) => {
 
   try {
     const page = await browser.newPage();
-    const navigationPromise = page.goto(url, { waitUntil: 'networkidle2' });
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Puppeteer took too long!')), 3000),
-    );
-    await Promise.race([navigationPromise, timeoutPromise]);
+    const userAgent = (await browser.userAgent()).replace('HeadlessChrome', 'Chrome');
+    await page.setUserAgent({ userAgent });
+    // Give the page a few seconds, then keep whatever cookies it has set by then
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 3000 }).catch(() => {});
     return await browser.cookies();
   } finally {
     await browser.close();

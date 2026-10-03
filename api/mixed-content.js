@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import middleware from './_common/middleware.js';
-import { httpGet, isBotCheck } from './_common/http.js';
+import { httpGet, isBotCheck, BOT_CHECK_ERROR } from './_common/http.js';
 import { upstreamError } from './_common/upstream.js';
 import { baseDomain } from './_common/parse-target.js';
 
@@ -120,9 +120,7 @@ const mixedContentHandler = async (url) => {
   } catch (error) {
     return upstreamError(error, 'Page fetch');
   }
-  if (isBotCheck(response.status, response.headers)) {
-    return { error: "Page returned a bot check, so couldn't be checked" };
-  }
+  if (isBotCheck(response)) return BOT_CHECK_ERROR;
   if (!/html/i.test(response.headers['content-type'] ?? 'html')) {
     return { skipped: 'Page is not HTML, so has no resources to check' };
   }

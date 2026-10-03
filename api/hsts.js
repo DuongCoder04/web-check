@@ -1,5 +1,5 @@
-import https from 'https';
 import middleware from './_common/middleware.js';
+import { httpGet, isBotCheck, BOT_CHECK_ERROR } from './_common/http.js';
 
 const MIN_MAX_AGE = 10886400;
 
@@ -22,15 +22,19 @@ const evaluate = (header) => {
   return verdict('Site is compatible with the HSTS preload list!', true, header);
 };
 
-const hstsHandler = async (url) =>
-  new Promise((resolve) => {
-    const req = https.request(url, (res) => {
-      resolve(evaluate(res.headers['strict-transport-security']));
-      res.resume();
-    });
-    req.on('error', (e) => resolve({ error: `HSTS check failed: ${e.message}` }));
-    req.end();
-  });
+// Read HSTS from the first HTTPS response, without following redirects, unless a bot check hid it
+const hstsHandler = async (url) => {
+  try {
+    const target = new URL(url);
+    target.protocol = 'https:';
+    const response = await httpGet(target.href, { redirect: 'manual', validateStatus: () => true });
+    const header = response.headers['strict-transport-security'];
+    if (!header && isBotCheck(response)) return BOT_CHECK_ERROR;
+    return evaluate(header);
+  } catch (error) {
+    return { error: `HSTS check failed: ${error.code || error.message}` };
+  }
+};
 
 export const handler = middleware(hstsHandler);
 export default handler;

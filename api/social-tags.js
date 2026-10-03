@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import middleware from './_common/middleware.js';
-import { httpGet } from './_common/http.js';
+import { httpGet, isBotCheck, BOT_CHECK_ERROR } from './_common/http.js';
 import { upstreamError } from './_common/upstream.js';
 import { normalizeXHandle } from './_common/social.js';
 
@@ -11,6 +11,7 @@ const socialTagsHandler = async (url) => {
   } catch (error) {
     return upstreamError(error, 'Social tags fetch');
   }
+  if (isBotCheck(response)) return BOT_CHECK_ERROR;
   try {
     const $ = cheerio.load(response.data);
 
