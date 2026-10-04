@@ -1179,26 +1179,37 @@ paths:
             application/json:
               schema:
                 type: object
+                description: Each header's value, or false when it isn't set
                 properties:
-                  strictTransportPolicy:
-                    type: boolean
-                    description: Whether Strict Transport Security is enabled
-                    example: false
-                  xFrameOptions:
-                    type: boolean
-                    description: Whether X-Frame-Options header is set
-                    example: true
-                  xContentTypeOptions:
-                    type: boolean
-                    description: Whether X-Content-Type-Options header is set
-                    example: false
-                  xXSSProtection:
-                    type: boolean
-                    description: Whether X-XSS-Protection header is set
-                    example: true
                   contentSecurityPolicy:
-                    type: boolean
-                    description: Whether Content Security Policy is enabled
+                    oneOf: [{ type: string }, { type: boolean }]
+                    example: "default-src 'self'; frame-ancestors 'none'"
+                  strictTransportPolicy:
+                    oneOf: [{ type: string }, { type: boolean }]
+                    example: 'max-age=31536000; includeSubDomains'
+                  xContentTypeOptions:
+                    oneOf: [{ type: string }, { type: boolean }]
+                    example: 'nosniff'
+                  xFrameOptions:
+                    oneOf: [{ type: string }, { type: boolean }]
+                    example: 'DENY'
+                  xXSSProtection:
+                    oneOf: [{ type: string }, { type: boolean }]
+                    example: false
+                  referrerPolicy:
+                    oneOf: [{ type: string }, { type: boolean }]
+                    example: 'strict-origin-when-cross-origin'
+                  permissionsPolicy:
+                    oneOf: [{ type: string }, { type: boolean }]
+                    example: 'camera=(), microphone=()'
+                  crossOriginOpenerPolicy:
+                    oneOf: [{ type: string }, { type: boolean }]
+                    example: 'same-origin'
+                  crossOriginResourcePolicy:
+                    oneOf: [{ type: string }, { type: boolean }]
+                    example: false
+                  crossOriginEmbedderPolicy:
+                    oneOf: [{ type: string }, { type: boolean }]
                     example: false
         '204':
           $ref: '#/components/responses/Skipped'
@@ -1306,7 +1317,7 @@ paths:
                       type: array
                       items:
                         type: string
-                    description: SPF, DMARC, BIMI and DKIM TXT records, each split into DNS chunks
+                    description: SPF, DMARC, BIMI, TLS-RPT and DKIM TXT records, each split into DNS chunks
                     example:
                       - ['v=spf1 include:_spf.google.com ~all']
                       - ['v=DMARC1; p=reject; rua=mailto:dmarc@example.com']
@@ -1332,6 +1343,30 @@ paths:
                           description: RSA key size, or null for other key types
                           example: 2048
                     description: Live DKIM keys found on common selectors
+                  mtaSts:
+                    type: object
+                    description: The MTA-STS policy, when the domain publishes an _mta-sts record
+                    properties:
+                      mode:
+                        type: string
+                        description: enforce, testing or none, missing if the policy file can't be read
+                        example: 'enforce'
+                      mx:
+                        type: array
+                        items:
+                          type: string
+                        description: MX host patterns the policy covers
+                        example: ['*.mail.protection.outlook.com']
+                      maxAge:
+                        type: integer
+                        description: Seconds senders may cache the policy for
+                        example: 604800
+                  dane:
+                    type: array
+                    items:
+                      type: string
+                    description: MX hosts that publish DNSSEC-signed DANE TLSA records for SMTP
+                    example: ['mail.protonmail.ch']
                   mailServices:
                     type: array
                     items:
@@ -1672,7 +1707,7 @@ paths:
                       properties:
                         lbl:
                           type: string
-                          description: The label of the robots.txt entry (e.g., User-agent, Disallow, Allow)
+                          description: The field name (User-agent, Allow, Disallow, Crawl-delay, Sitemap or Content-Signal)
                           example: 'User-agent'
                         val:
                           type: string
@@ -1704,6 +1739,10 @@ paths:
                         val: 'ia_archiver'
                       - lbl: 'Disallow'
                         val: '/'
+                  llmsTxt:
+                    type: boolean
+                    description: Whether the site serves an llms.txt file
+                    example: false
         '204':
           $ref: '#/components/responses/Skipped'
         '500':
@@ -2171,6 +2210,17 @@ paths:
                     type: string
                     description: Subject alternative name
                     example: 'DNS:*.duck.com, DNS:duck.com'
+                  chain:
+                    type: array
+                    items:
+                      type: string
+                    description: Names of each certificate, from the site's own up to its root
+                    example:
+                      [
+                        '*.duck.com',
+                        'DigiCert Global G2 TLS RSA SHA256 2020 CA1',
+                        'DigiCert Global Root G2',
+                      ]
                   infoAccess:
                     type: object
                     description: Information Access details
@@ -2582,14 +2632,33 @@ paths:
                     description: Whether the website is up
                     example: true
                   responseTime:
-                    type: number
-                    format: float
+                    type: integer
                     description: The response time in milliseconds
-                    example: 105.34512500000005
+                    example: 105
                   responseCode:
                     type: integer
                     description: The HTTP response code
                     example: 302
+                  timings:
+                    type: object
+                    description: Milliseconds spent on each step of the request
+                    properties:
+                      dns:
+                        type: integer
+                        example: 21
+                      connect:
+                        type: integer
+                        example: 16
+                      tls:
+                        type: integer
+                        example: 17
+                      wait:
+                        type: integer
+                        description: Waiting for the server to start responding
+                        example: 19
+                      download:
+                        type: integer
+                        example: 32
         '204':
           $ref: '#/components/responses/Skipped'
         '500':
