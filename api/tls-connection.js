@@ -4,16 +4,23 @@ import { parseTarget } from './_common/parse-target.js';
 
 const HANDSHAKE_TIMEOUT = 4000;
 
+const VERSIONS = ['TLSv1', 'TLSv1.1', 'TLSv1.2', 'TLSv1.3'];
+
 const isIp = (h) => /^[\d.]+$/.test(h) || h.includes(':');
 
+// Where to connect, with SNI for hostnames
+const connectTo = ({ hostname, port }) => ({
+  host: hostname,
+  port: port ? Number(port) : 443,
+  ...(isIp(hostname) ? {} : { servername: hostname }),
+});
+
 // Open one TLS handshake to the host and capture what was negotiated
-const handshake = ({ hostname, port }) =>
+const handshake = (target) =>
   new Promise((resolve, reject) => {
     let ocspStapled = false;
     const socket = tls.connect({
-      host: hostname,
-      port: port ? Number(port) : 443,
-      ...(isIp(hostname) ? {} : { servername: hostname }),
+      ...connectTo(target),
       ALPNProtocols: ['h2', 'http/1.1'],
       rejectUnauthorized: false,
       requestOCSP: true,
@@ -70,14 +77,47 @@ const handshake = ({ hostname, port }) =>
       'error',
       finish((err) => {
         socket.destroy();
-        reject(err);
+        reject(new Error(`TLS handshake failed: ${err.reason || err.message}`));
       }),
     );
   });
 
+// True for errors from the server turning a TLS version down, not from the network failing
+const isRefusal = ({ code = '' }) =>
+  code === 'ECONNRESET' ||
+  (code.startsWith('ERR_SSL_') && code !== 'ERR_SSL_NO_PROTOCOLS_AVAILABLE');
+
+// True if the server completes a handshake on one TLS version, false if refused, null if unknown
+const accepts = (target, version) =>
+  new Promise((resolve) => {
+    const socket = tls.connect({
+      ...connectTo(target),
+      minVersion: version,
+      maxVersion: version,
+      ciphers: 'DEFAULT@SECLEVEL=0',
+      rejectUnauthorized: false,
+    });
+    socket.setTimeout(HANDSHAKE_TIMEOUT, () => {
+      resolve(null);
+      socket.destroy();
+    });
+    socket.once('secureConnect', () => {
+      resolve(true);
+      socket.destroy();
+    });
+    socket.on('error', (e) => resolve(isRefusal(e) ? false : null));
+    socket.once('close', () => resolve(false));
+  });
+
 const tlsConnectionHandler = async (url) => {
-  const { hostname, port } = parseTarget(url);
-  return handshake({ hostname, port });
+  const target = parseTarget(url);
+  const [result, accepted] = await Promise.all([
+    handshake(target),
+    Promise.all(VERSIONS.map((version) => accepts(target, version))),
+  ]);
+  if (accepted.includes(null)) return result;
+  const versions = VERSIONS.filter((v, i) => accepted[i] || v === result.protocol);
+  return { ...result, versions };
 };
 
 export const handler = middleware(tlsConnectionHandler);
