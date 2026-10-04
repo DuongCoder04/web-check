@@ -1,23 +1,39 @@
 import { Card } from 'client/components/Form/Card';
 import Row from 'client/components/Form/Row';
+import { SEVERITIES, type Severity } from 'client/analysis/types';
+import { HEADERS, checkHeader, hasFrameAncestors } from 'client/analysis/rules/http-security';
 
-const yes = '✅ Yes';
-const no = '❌ No';
-const check = (v: any) => (v ? yes : no);
+const cardStyles = `
+  span.lbl { flex: none !important; }
+  span.val { flex: 1; text-align: right; }
+`;
+
+const ICONS: Record<Severity, string> = {
+  critical: '❌',
+  issue: '❌',
+  warning: '⚠️',
+  info: 'ⓘ',
+  pass: '✅',
+};
+
+// A header's value, marked with its worst finding
+const showHeader = (d: any, key: string) => {
+  const severities = checkHeader(d, key).map((finding) => finding.severity);
+  const icon = ICONS[SEVERITIES.find((s) => severities.includes(s)) || 'pass'];
+  if (d[key]) return `${icon} ${d[key]}`;
+  return `${icon} ${key === 'xFrameOptions' && hasFrameAncestors(d) ? 'Via CSP' : 'No'}`;
+};
 
 const HttpSecurityCard = (props: { data: any; title: string; actionButtons: any }): JSX.Element => {
   const d = props.data;
   return (
-    <Card heading={props.title} actionButtons={props.actionButtons}>
-      <Row lbl="Content Security Policy" val={check(d.contentSecurityPolicy)} />
-      <Row lbl="Strict Transport Policy" val={check(d.strictTransportPolicy)} />
-      <Row lbl="X-Content-Type-Options" val={check(d.xContentTypeOptions)} />
-      <Row lbl="X-Frame-Options" val={check(d.xFrameOptions)} />
-      <Row lbl="Referrer Policy" val={check(d.referrerPolicy)} />
-      <Row lbl="Permissions Policy" val={check(d.permissionsPolicy)} />
-      <Row lbl="Cross-Origin-Opener-Policy" val={check(d.crossOriginOpenerPolicy)} />
-      <Row lbl="Cross-Origin-Resource-Policy" val={check(d.crossOriginResourcePolicy)} />
-      <Row lbl="Cross-Origin-Embedder-Policy" val={check(d.crossOriginEmbedderPolicy)} />
+    <Card heading={props.title} actionButtons={props.actionButtons} styles={cardStyles}>
+      {Object.entries(HEADERS).map(
+        ([key, label]) =>
+          (d[key] || key !== 'xXSSProtection') && (
+            <Row key={key} lbl={label} val={showHeader(d, key)} />
+          ),
+      )}
     </Card>
   );
 };

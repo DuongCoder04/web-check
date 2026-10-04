@@ -20,7 +20,9 @@ const httpsSecHandler = async (url) => {
     const response = await httpGet(url, { validateStatus: () => true });
     if (isBotCheck(response)) return BOT_CHECK_ERROR;
     const { headers } = response;
-    return Object.fromEntries(Object.entries(HEADERS).map(([h, key]) => [key, !!headers[h]]));
+    return Object.fromEntries(
+      Object.entries(HEADERS).map(([h, key]) => [key, headers[h] || false]),
+    );
   } catch (error) {
     return { error: `Unable to fetch headers: ${error.message}` };
   }

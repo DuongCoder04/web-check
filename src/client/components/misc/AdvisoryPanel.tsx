@@ -3,9 +3,7 @@ import styled from '@emotion/styled';
 import colors from 'client/styles/colors';
 import Card from 'client/components/Form/Card';
 import Heading from 'client/components/Form/Heading';
-import type { Finding, Severity } from 'client/analysis/types';
-
-const ORDER: Severity[] = ['critical', 'issue', 'warning', 'info', 'pass'];
+import { SEVERITIES, type Finding, type Severity } from 'client/analysis/types';
 
 interface SevMeta {
   label: string;
@@ -117,7 +115,7 @@ const AdvisoryPanel = ({ findings, onJumpTo }: Props): ReactNode => {
       pass: [],
     };
     for (const f of findings) grouped[f.severity].push(f);
-    return { grouped, visible: ORDER.filter((sev) => grouped[sev].length) };
+    return { grouped, visible: SEVERITIES.filter((sev) => grouped[sev].length) };
   }, [findings]);
 
   if (!findings.length) return null;
