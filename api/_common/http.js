@@ -69,8 +69,13 @@ export const UA =
 // Our own user agent, for APIs and files meant for tools, which ask clients to say who they are
 export const APP_UA = 'web-check (+https://web-check.xyz)';
 
-// Headers that Cloudflare, Vercel and AWS WAF add when they challenge or block a request
-const BOT_CHECK_HEADERS = ['cf-mitigated', 'x-vercel-mitigated', 'x-amzn-waf-action'];
+// Headers Cloudflare, Vercel, AWS WAF and DataDome add when they challenge or block a request
+const BOT_CHECK_HEADERS = [
+  'cf-mitigated',
+  'x-vercel-mitigated',
+  'x-amzn-waf-action',
+  'x-datadome-cid',
+];
 
 // True for bot check pages (like Cloudflare's, AWS WAF's or Akamai's), served instead of the site
 export const isBotCheck = ({ status, headers, data }) =>

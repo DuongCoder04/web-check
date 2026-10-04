@@ -18,6 +18,8 @@ const WAF_SIGNATURES = [
   ['set-cookie', 'incap_ses', 'Imperva Incapsula'],
   ['set-cookie', 'visid_incap', 'Imperva Incapsula'],
   ['server', 'akamaighost', 'Akamai'],
+  ['x-datadome', null, 'DataDome'],
+  ['set-cookie', 'datadome=', 'DataDome'],
   ['x-powered-by', 'aws lambda', 'AWS WAF'],
   ['server', 'big-ip', 'F5 BIG-IP'],
   ['set-cookie', 'bigipserver', 'F5 BIG-IP'],
