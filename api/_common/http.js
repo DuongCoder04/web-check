@@ -29,10 +29,14 @@ const headersToObject = (headers) => {
   return out;
 };
 
+// UTF-16 byte order marks, which browsers follow over the declared charset
+const BOMS = { fffe: 'utf-16le', feff: 'utf-16be' };
+
 // Auto-parse JSON when the response advertises it, fall back to raw text
 const parseBody = async (response) => {
   const ct = (response.headers.get('content-type') || '').toLowerCase();
-  const text = await response.text();
+  const bytes = Buffer.from(await response.arrayBuffer());
+  const text = new TextDecoder(BOMS[bytes.toString('hex', 0, 2)] || 'utf-8').decode(bytes);
   if (!text) return ct.includes('json') ? null : '';
   if (ct.includes('json')) {
     try {
