@@ -10,6 +10,7 @@ export interface ServerLocation {
     longitude: number;
   };
   isp: string;
+  asn?: number;
   timezone: string;
 }
 
@@ -33,6 +34,7 @@ export const getLocation = (response: any): ServerLocation => {
       longitude: response.longitude,
     },
     isp: response.org,
+    asn: response.asn,
     timezone: response.timezone,
   };
 };
