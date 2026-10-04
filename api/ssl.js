@@ -1,18 +1,26 @@
+import net from 'net';
 import tls from 'tls';
 import middleware from './_common/middleware.js';
+
+// Name each certificate in the chain, from the site's own up to its root
+const getChain = (cert) => {
+  const chain = [];
+  for (let c = cert; c?.subject && !chain.includes(c); c = c.issuerCertificate) chain.push(c);
+  return chain.map(({ subject }) => subject.CN || subject.O || '');
+};
 
 const sslHandler = async (urlString) => {
   const parsedUrl = new URL(urlString);
   const options = {
     host: parsedUrl.hostname,
     port: parsedUrl.port || 443,
-    servername: parsedUrl.hostname,
+    ...(net.isIP(parsedUrl.hostname) ? {} : { servername: parsedUrl.hostname }),
     rejectUnauthorized: false,
   };
 
   return new Promise((resolve, reject) => {
     const socket = tls.connect(options, () => {
-      const cert = socket.getPeerCertificate();
+      const cert = socket.getPeerCertificate(true);
       if (!cert || Object.keys(cert).length === 0) {
         reject(new Error('No certificate presented by the server'));
         socket.end();
@@ -21,13 +29,14 @@ const sslHandler = async (urlString) => {
       const { raw, issuerCertificate, ...certData } = cert;
       resolve({
         ...certData,
+        chain: getChain(cert),
         isValid: socket.authorized,
         authError: socket.authorizationError || null,
       });
       socket.end();
     });
     socket.on('error', (e) => {
-      reject(new Error(`SSL connection failed: ${e.message}`));
+      reject(new Error(`SSL connection failed: ${e.reason || e.message}`));
     });
   });
 };
