@@ -21,6 +21,7 @@ import OpenPortsCard from 'client/components/Results/OpenPorts';
 import TraceRouteCard from 'client/components/Results/TraceRoute';
 import CarbonFootprintCard from 'client/components/Results/CarbonFootprint';
 import DnsSecCard from 'client/components/Results/DnsSec';
+import CaaRecordsCard from 'client/components/Results/CaaRecords';
 import HstsCard from 'client/components/Results/Hsts';
 import SitemapCard from 'client/components/Results/Sitemap';
 import DomainLookup from 'client/components/Results/DomainLookup';
@@ -32,6 +33,7 @@ import SocialTagsCard from 'client/components/Results/SocialTags';
 import SocialPresenceCard from 'client/components/Results/SocialPresence';
 import MailConfigCard from 'client/components/Results/MailConfig';
 import HttpSecurityCard from 'client/components/Results/HttpSecurity';
+import MixedContentCard from 'client/components/Results/MixedContent';
 import FirewallCard from 'client/components/Results/Firewall';
 import ArchivesCard from 'client/components/Results/Archives';
 import RankCard from 'client/components/Results/Rank';
@@ -212,6 +214,12 @@ export const jobs: JobSpec[] = [
     fetcher: fetchAndProcess('http-security?url=${url}'),
   },
   {
+    id: 'mixed-content',
+    expectedAddressTypes: [...URL_ONLY],
+    cards: [card('mixed-content', MixedContentCard)],
+    fetcher: fetchAndProcess('mixed-content?url=${url}'),
+  },
+  {
     id: 'tls-connection',
     expectedAddressTypes: [...URL_ONLY],
     cards: [card('tls-connection', TlsConnectionCard)],
@@ -261,6 +269,12 @@ export const jobs: JobSpec[] = [
     expectedAddressTypes: [...URL_ONLY],
     cards: [card('dnssec', DnsSecCard)],
     fetcher: fetchAndProcess('dnssec?url=${url}'),
+  },
+  {
+    id: 'caa-records',
+    expectedAddressTypes: [...URL_ONLY],
+    cards: [card('caa-records', CaaRecordsCard)],
+    fetcher: fetchAndProcess('caa-records?url=${url}'),
   },
   {
     id: 'hsts',

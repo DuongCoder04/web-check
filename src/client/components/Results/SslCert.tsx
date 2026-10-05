@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import colors from 'client/styles/colors';
 import { Card } from 'client/components/Form/Card';
 import Heading from 'client/components/Form/Heading';
+import { ExpandableRow } from 'client/components/Form/Row';
 
 const Row = styled.div`
   display: flex;
@@ -84,19 +85,28 @@ const ListRow = (props: { list: string[]; title: string }) => {
   );
 };
 
+// Days from a certificate's issue to its expiry
+const lifetime = ({ valid_from, valid_to }: any) =>
+  Math.round((Date.parse(valid_to) - Date.parse(valid_from)) / 86_400_000);
+
+// Key type and size, like "RSA 2048-bit" or "EC 256-bit (P-256)"
+const describeKey = ({ bits, modulus, asn1Curve, nistCurve }: any) => {
+  if (!bits) return '';
+  if (modulus) return `RSA ${bits}-bit`;
+  const curve = nistCurve || asn1Curve;
+  return curve ? `EC ${bits}-bit (${curve})` : `${bits}-bit`;
+};
+
 const SslCertCard = (props: { data: any; title: string; actionButtons: any }): JSX.Element => {
   const sslCert = props.data;
-  const {
-    subject,
-    issuer,
-    fingerprint,
-    serialNumber,
-    asn1Curve,
-    nistCurve,
-    valid_to,
-    valid_from,
-    ext_key_usage,
-  } = sslCert;
+  const { subject, issuer, fingerprint, serialNumber, valid_to, valid_from, ext_key_usage } =
+    sslCert;
+  const key = describeKey(sslCert);
+  const days = lifetime(sslCert);
+  const altNames = (sslCert.subjectaltname || '')
+    .split(', ')
+    .map((name: string) => name.replace(/^[^:]+:/, ''))
+    .filter(Boolean);
   return (
     <Card heading={props.title} actionButtons={props.actionButtons}>
       {subject && <DataRow lbl="Subject" val={subject?.CN} />}
@@ -104,12 +114,20 @@ const SslCertCard = (props: { data: any; title: string; actionButtons: any }): J
       {typeof sslCert.isValid === 'boolean' && (
         <DataRow lbl="Trusted" val={sslCert.isValid ? '✅ Yes' : `❌ No (${sslCert.authError})`} />
       )}
-      {asn1Curve && <DataRow lbl="ASN1 Curve" val={asn1Curve} />}
-      {nistCurve && <DataRow lbl="NIST Curve" val={nistCurve} />}
+      {key && <DataRow lbl="Public Key" val={key} />}
       {valid_to && <DataRow lbl="Expires" val={formatDate(valid_to)} />}
       {valid_from && <DataRow lbl="Renewed" val={formatDate(valid_from)} />}
+      {days > 0 && <DataRow lbl="Lifetime" val={`${days} days`} />}
       {serialNumber && <DataRow lbl="Serial Num" val={serialNumber} />}
       {fingerprint && <DataRow lbl="Fingerprint" val={fingerprint} />}
+      {altNames.length > 0 && (
+        <ExpandableRow
+          lbl="Alternative Names"
+          val={String(altNames.length)}
+          rowList={altNames.map((name: string) => ({ lbl: name, val: '' }))}
+        />
+      )}
+      {sslCert.chain?.length > 0 && <ListRow title="Certificate Chain" list={sslCert.chain} />}
       {ext_key_usage && (
         <ListRow title="Extended Key Usage" list={getExtendedKeyUsage(ext_key_usage)} />
       )}

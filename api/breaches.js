@@ -1,6 +1,6 @@
 import net from 'net';
 import middleware from './_common/middleware.js';
-import { httpGet } from './_common/http.js';
+import { httpGet, APP_UA } from './_common/http.js';
 import { parseTarget, baseDomain } from './_common/parse-target.js';
 import { upstreamError } from './_common/upstream.js';
 
@@ -23,7 +23,7 @@ const toBreach = (b) => ({
 // Fetch every site breach HIBP has recorded, newest first, cached for a few hours
 const allBreaches = async () => {
   if (Date.now() < cache.expires) return cache.breaches;
-  const res = await httpGet(HIBP_URL, { timeout: 10000 });
+  const res = await httpGet(HIBP_URL, { timeout: 10000, headers: { 'user-agent': APP_UA } });
   if (!Array.isArray(res.data)) throw new Error('Unexpected response');
   const breaches = res.data
     .filter((b) => b.Domain && !b.IsFabricated && !b.IsSpamList)

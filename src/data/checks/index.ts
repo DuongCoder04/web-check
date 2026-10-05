@@ -20,6 +20,7 @@ import vulnerabilities from './vulnerabilities';
 import whoisLookup from './whois-lookup';
 import domainInfo from './domain-info';
 import dnssec from './dnssec';
+import caaRecords from './caa-records';
 import hsts from './hsts';
 import dnsServer from './dns-server';
 import techStack from './tech-stack';
@@ -31,6 +32,7 @@ import socialPresence from './social-presence';
 import mailConfig from './mail-config';
 import firewall from './firewall';
 import httpSecurity from './http-security';
+import mixedContent from './mixed-content';
 import archives from './archives';
 import rank from './rank';
 import blockLists from './block-lists';
@@ -76,6 +78,7 @@ const all = {
   'whois-lookup': whoisLookup,
   'domain-info': domainInfo,
   dnssec,
+  'caa-records': caaRecords,
   hsts,
   'dns-server': dnsServer,
   'tech-stack': techStack,
@@ -87,6 +90,7 @@ const all = {
   'mail-config': mailConfig,
   firewall,
   'http-security': httpSecurity,
+  'mixed-content': mixedContent,
   archives,
   rank,
   'block-lists': blockLists,

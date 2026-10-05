@@ -1,6 +1,7 @@
 import dns from 'dns/promises';
 import crypto from 'crypto';
 import middleware from './_common/middleware.js';
+import { httpGet, APP_UA } from './_common/http.js';
 import { parseTarget, baseDomain } from './_common/parse-target.js';
 
 // Query TXT, returning [] when the name has none, and throwing on lookup failures
@@ -131,18 +132,65 @@ const detectProviders = (mxRecords) => {
   }, []);
 };
 
+// Read the MTA-STS policy a domain publishes, if its DNS record says it has one
+const getMtaSts = async (domain) => {
+  const records = withPrefix(await safeTxt(`_mta-sts.${domain}`).catch(() => []), 'v=stsv1');
+  if (!records.length) return undefined;
+  const res = await httpGet(`https://mta-sts.${domain}/.well-known/mta-sts.txt`, {
+    timeout: 8000,
+    redirect: 'manual',
+    headers: { 'user-agent': APP_UA },
+  }).catch(() => null);
+  const policy = { mx: [] };
+  let version;
+  for (const line of String(res?.data ?? '').split('\n')) {
+    const [key, value] = line.split(':').map((part) => part.trim());
+    if (key === 'version') version = value;
+    if (key === 'mode') policy.mode = value;
+    if (key === 'mx') policy.mx.push(value);
+    if (key === 'max_age') policy.maxAge = Number(value);
+  }
+  // Senders ignore a policy unless there's one record and the file is well formed
+  const valid =
+    records.length === 1 &&
+    version === 'STSv1' &&
+    ['enforce', 'testing', 'none'].includes(policy.mode) &&
+    policy.maxAge >= 0;
+  return valid ? policy : { mx: [] };
+};
+
+// The MX hosts with DNSSEC-signed TLSA (type 52) records for SMTP, which DANE needs
+const findDane = async (mxRecords) => {
+  const hosts = mxRecords.map(({ exchange }) => exchange).filter(Boolean);
+  const signed = await Promise.all(
+    hosts.map((host) =>
+      httpGet('https://dns.google/resolve', {
+        params: { name: `_25._tcp.${host}`, type: 'TLSA' },
+        timeout: 5000,
+      }).then(
+        ({ data }) => data.AD === true && !!data.Answer?.some((record) => record.type === 52),
+        () => false,
+      ),
+    ),
+  );
+  return hosts.filter((_, i) => signed[i]);
+};
+
 const mailConfigHandler = async (url) => {
   const { hostname: domain } = parseTarget(url);
   const parent = baseDomain(domain);
   try {
-    const [mxRecords, rootTxt, ownDmarcTxt, parentDmarcTxt, bimiTxt, dkim] = await Promise.all([
-      safeMx(domain),
-      safeTxt(domain),
-      safeTxt(`_dmarc.${domain}`),
-      parent === domain ? [] : safeTxt(`_dmarc.${parent}`),
-      safeTxt(`default._bimi.${domain}`),
-      findDkim(domain),
-    ]);
+    const [mxRecords, rootTxt, ownDmarcTxt, parentDmarcTxt, bimiTxt, tlsRptTxt, dkim, mtaSts] =
+      await Promise.all([
+        safeMx(domain),
+        safeTxt(domain),
+        safeTxt(`_dmarc.${domain}`),
+        parent === domain ? [] : safeTxt(`_dmarc.${parent}`),
+        safeTxt(`default._bimi.${domain}`),
+        safeTxt(`_smtp._tls.${domain}`).catch(() => []),
+        findDkim(domain),
+        getMtaSts(domain),
+      ]);
     const spf = withPrefix(rootTxt, 'v=spf1');
     const dmarc = withPrefix(ownDmarcTxt, 'v=dmarc1');
     const parentDmarc = dmarc.length ? [] : withPrefix(parentDmarcTxt, 'v=dmarc1');
@@ -158,11 +206,14 @@ const mailConfigHandler = async (url) => {
         ...dmarc,
         ...parentDmarc,
         ...withPrefix(bimiTxt, 'v=bimi1'),
+        ...withPrefix(tlsRptTxt, 'v=tlsrptv1'),
         ...dkim.map(({ record }) => record),
       ],
       dmarcDomain: parentDmarc.length ? parent : undefined,
       spfLookups: spf.length === 1 ? await countSpfLookups(spf[0].join('')) : 0,
       dkim: dkim.map(({ selector, bits }) => ({ selector, bits })),
+      mtaSts,
+      dane: await findDane(mxRecords),
       mailServices: detectProviders(mxRecords),
     };
   } catch (error) {

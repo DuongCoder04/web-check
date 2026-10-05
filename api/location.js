@@ -32,6 +32,7 @@ const providers = [
             latitude: d.latitude,
             longitude: d.longitude,
             org: d.connection?.isp || d.connection?.org,
+            asn: d.connection?.asn,
             timezone: d.timezone?.id,
           },
   },
@@ -51,6 +52,7 @@ const providers = [
             latitude: d.lat,
             longitude: d.lon,
             org: d.isp || d.org,
+            asn: parseInt(d.as?.slice(2)) || undefined,
             timezone: d.timezone,
           }
         : null,
@@ -69,6 +71,7 @@ const providers = [
             latitude: d.latitude !== 'nil' ? parseFloat(d.latitude) : undefined,
             longitude: d.longitude !== 'nil' ? parseFloat(d.longitude) : undefined,
             org: d.organization_name,
+            asn: d.asn,
             timezone: d.timezone,
           }
         : null,

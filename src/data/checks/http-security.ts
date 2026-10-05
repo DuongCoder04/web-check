@@ -14,7 +14,8 @@ export default {
   use:
     'These cost nothing to add and are very often simply absent. A site missing all ' +
     'of them is not necessarily exploitable, but it has opted out of several ' +
-    'protections the browser would otherwise enforce on its behalf.',
+    'protections the browser would otherwise enforce on its behalf. Being present ' +
+    'is not enough either, since a CSP that allows inline scripts stops very little.',
   resources: [
     {
       title: 'OWASP Secure Headers Project',

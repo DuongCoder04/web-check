@@ -23,6 +23,14 @@ export const launchBrowser = async (options = {}) =>
     ...options,
   });
 
+// Open a page that reports the browser's own user agent, minus the HeadlessChrome giveaway
+export const openPage = async (browser) => {
+  const page = await browser.newPage();
+  const userAgent = (await browser.userAgent()).replace('HeadlessChrome', 'Chrome');
+  await page.setUserAgent({ userAgent });
+  return page;
+};
+
 // Kill the browser, then let puppeteer tidy up its temp profile
 export const closeBrowser = async (browser) => {
   browser.process()?.kill('SIGKILL');

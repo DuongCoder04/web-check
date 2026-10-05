@@ -9,6 +9,14 @@ span.val {
 }
 `;
 
+const STEPS = [
+  ['dns', 'DNS Lookup'],
+  ['connect', 'TCP Connect'],
+  ['tls', 'TLS Handshake'],
+  ['wait', 'Server Response'],
+  ['download', 'Download'],
+];
+
 const ServerStatusCard = (props: { data: any; title: string; actionButtons: any }): JSX.Element => {
   const serverStatus = props.data;
   return (
@@ -24,6 +32,12 @@ const ServerStatusCard = (props: { data: any; title: string; actionButtons: any 
       <Row lbl="Status Code" val={serverStatus.responseCode} />
       {serverStatus.responseTime && (
         <Row lbl="Response Time" val={`${Math.round(serverStatus.responseTime)}ms`} />
+      )}
+      {STEPS.map(
+        ([key, label]) =>
+          serverStatus.timings?.[key] > 0 && (
+            <Row key={key} lbl={label} val={`${serverStatus.timings[key]}ms`} />
+          ),
       )}
     </Card>
   );

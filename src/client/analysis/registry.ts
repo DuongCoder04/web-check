@@ -4,9 +4,11 @@ import type { CheckId } from '@/data/checks';
 import type { Analyzer, Finding } from './types';
 
 import httpSecurity from './rules/http-security';
+import mixedContent from './rules/mixed-content';
 import hsts from './rules/hsts';
 import ssl from './rules/ssl';
 import dnssec from './rules/dnssec';
+import caaRecords from './rules/caa-records';
 import securityTxt from './rules/security-txt';
 import threats from './rules/threats';
 import breaches from './rules/breaches';
@@ -32,9 +34,11 @@ import tlsClientCompat from './rules/tls-client-compat';
 /* Map of card id to its pure analyzer */
 export const analyzers: Partial<Record<CheckId, Analyzer>> = {
   'http-security': httpSecurity,
+  'mixed-content': mixedContent,
   hsts,
   ssl,
   dnssec,
+  'caa-records': caaRecords,
   'security-txt': securityTxt,
   threats,
   breaches,

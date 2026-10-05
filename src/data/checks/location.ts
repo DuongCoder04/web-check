@@ -7,7 +7,8 @@ export default {
   description:
     "Maps the server's IP to a physical location using a geolocation database, which " +
     'associates address ranges with known data centres and ISPs. From the coordinates ' +
-    'you also get the country, region and timezone.',
+    'you also get the country, region and timezone. The address also belongs to a ' +
+    'network, numbered by its ASN, which names who runs the infrastructure.',
   use:
     'Where a site is hosted hints at where its audience or its operator is. It also ' +
     'decides latency, and anything that turns on jurisdiction: data residency rules, ' +

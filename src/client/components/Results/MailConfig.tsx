@@ -6,7 +6,9 @@ import {
   checkSpf,
   checkDmarc,
   checkDkim,
+  checkMtaSts,
   findRecords,
+  mxHosts,
   sendsNoMail,
   type MailData,
 } from 'client/analysis/rules/mail-config';
@@ -16,6 +18,13 @@ const cardStyles = `summary { margin: 0.5rem 0; }`;
 const dkimStatus = (d: MailData) => {
   if (!d.dkim?.length) return sendsNoMail(d) ? 'Not needed' : 'Not found';
   return checkDkim(d).severity !== 'issue';
+};
+
+// MTA-STS as a tick or cross, or its mode when not enforced yet
+const mtaStsStatus = (d: MailData) => {
+  if (!d.mtaSts) return 'Not set up';
+  const { severity } = checkMtaSts(d)!;
+  return severity === 'info' ? `Mode: ${d.mtaSts.mode}` : severity === 'pass';
 };
 
 const MailConfigCard = (props: { data: any; title: string; actionButtons: any }): JSX.Element => {
@@ -34,6 +43,13 @@ const MailConfigCard = (props: { data: any; title: string; actionButtons: any })
       <Row lbl="DKIM" val={dkimStatus(mailServer)} />
       <Row lbl="DMARC" val={checkDmarc(mailServer).severity === 'pass'} />
       <Row lbl="BIMI" val={findRecords(txt, 'v=BIMI1').length > 0 || 'Not set up'} />
+      {mxHosts(mailServer).length > 0 && (
+        <>
+          <Row lbl="MTA-STS" val={mtaStsStatus(mailServer)} />
+          <Row lbl="TLS-RPT" val={findRecords(txt, 'v=TLSRPTv1').length > 0 || 'Not set up'} />
+          <Row lbl="DANE" val={mailServer.dane?.length > 0 || 'Not set up'} />
+        </>
+      )}
 
       {mailServer.mxRecords?.length > 0 && (
         <Heading as="h3" color={colors.primary} size="small">

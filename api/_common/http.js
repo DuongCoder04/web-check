@@ -1,6 +1,6 @@
 // Thin fetch wrapper matching the axios shape used across the api: opts.params,
 // opts.headers, opts.auth, opts.timeout, opts.validateStatus; returns
-// { data, status, statusText, headers }; throws errors with response/code
+// { data, status, statusText, headers, url }; throws errors with response/code
 
 const DEFAULT_TIMEOUT = 60000;
 
@@ -29,10 +29,14 @@ const headersToObject = (headers) => {
   return out;
 };
 
+// UTF-16 byte order marks, which browsers follow over the declared charset
+const BOMS = { fffe: 'utf-16le', feff: 'utf-16be' };
+
 // Auto-parse JSON when the response advertises it, fall back to raw text
 const parseBody = async (response) => {
   const ct = (response.headers.get('content-type') || '').toLowerCase();
-  const text = await response.text();
+  const bytes = Buffer.from(await response.arrayBuffer());
+  const text = new TextDecoder(BOMS[bytes.toString('hex', 0, 2)] || 'utf-8').decode(bytes);
   if (!text) return ct.includes('json') ? null : '';
   if (ct.includes('json')) {
     try {
@@ -61,13 +65,38 @@ const wrapNetworkError = (error) => {
   return error;
 };
 
+// A current desktop Chrome user agent, so basic bot checks treat requests like a browser's
 export const UA =
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
-  'Chrome/120.0.0.0 Safari/537.36 (compatible; web-check/1.0; +https://web-check.xyz)';
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
+  'Chrome/154.0.0.0 Safari/537.36';
+
+// Our own user agent, for APIs and files meant for tools, which ask clients to say who they are
+export const APP_UA = 'web-check (+https://web-check.xyz)';
+
+// Headers Cloudflare, Vercel, AWS WAF and DataDome add when they challenge or block a request
+const BOT_CHECK_HEADERS = [
+  'cf-mitigated',
+  'x-vercel-mitigated',
+  'x-amzn-waf-action',
+  'x-datadome-cid',
+];
+
+// True for bot check pages (like Cloudflare's, AWS WAF's or Akamai's), served instead of the site
+export const isBotCheck = ({ status, headers, data }) =>
+  status === 202 ||
+  BOT_CHECK_HEADERS.some((name) => headers[name]) ||
+  String(data ?? '').includes('_sec/verify?provider=interstitial');
+
+// The result for a check that only got a bot check back
+export const BOT_CHECK_ERROR = { error: "Site returned a bot check, so couldn't be checked" };
 
 const send = async (method, url, body, opts = {}) => {
   const finalUrl = appendParams(url, opts.params);
-  const headers = { 'user-agent': UA, ...opts.headers };
+  const headers = { 'user-agent': UA };
+  // Lowercase names, so a caller's header replaces the default instead of joining it
+  for (const [name, value] of Object.entries(opts.headers ?? {})) {
+    headers[name.toLowerCase()] = value;
+  }
   const authHeader = buildAuth(opts.auth);
   if (authHeader) headers.authorization = authHeader;
 
@@ -81,8 +110,7 @@ const send = async (method, url, body, opts = {}) => {
   if (body !== undefined && body !== null) {
     if (typeof body === 'object') {
       init.body = JSON.stringify(body);
-      const hasCt = Object.keys(headers).some((k) => k.toLowerCase() === 'content-type');
-      if (!hasCt) init.headers['content-type'] = 'application/json';
+      headers['content-type'] ??= 'application/json';
     } else {
       init.body = body;
     }
@@ -101,6 +129,7 @@ const send = async (method, url, body, opts = {}) => {
     status: response.status,
     statusText: response.statusText,
     headers: headersToObject(response.headers),
+    url: response.url,
   };
 
   if (!isOk(response.status, opts.validateStatus)) {

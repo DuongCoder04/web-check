@@ -6,8 +6,8 @@ export default {
   summary: 'The security.txt file, and who it says to contact about vulnerabilities',
   description:
     'security.txt tells researchers how to report a security problem. RFC 9116 ' +
-    'defines the format: a contact address at minimum, then optionally a disclosure ' +
-    'policy, a PGP key, preferred languages and an expiry date. It belongs at ' +
+    'defines the format: a contact address and an expiry date at minimum, then ' +
+    'optionally a disclosure policy, a PGP key and preferred languages. It belongs at ' +
     '/.well-known/security.txt.',
   use:
     'Without a published contact, whoever finds a vulnerability either gives up or ' +

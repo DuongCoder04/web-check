@@ -1,6 +1,15 @@
 import type { Analyzer } from '../types';
 import { daysUntil } from '../helpers';
 
+// Plain reasons for the validation errors sites most often get
+const REASONS: Record<string, string> = {
+  UNABLE_TO_VERIFY_LEAF_SIGNATURE: "Server doesn't send its intermediate certificate",
+  UNABLE_TO_GET_ISSUER_CERT_LOCALLY: "Server doesn't send its intermediate certificate",
+  DEPTH_ZERO_SELF_SIGNED_CERT: 'Self-signed, not issued by a trusted authority',
+  SELF_SIGNED_CERT_IN_CHAIN: "Chain ends at a root browsers don't trust",
+  ERR_TLS_CERT_ALTNAME_INVALID: "Certificate doesn't cover this hostname",
+};
+
 // Check certificate validity and expiry window
 const ssl: Analyzer = (d) => {
   const out: ReturnType<Analyzer> = [];
@@ -8,7 +17,7 @@ const ssl: Analyzer = (d) => {
     out.push({
       severity: 'critical',
       title: 'SSL certificate invalid',
-      detail: d.authError || 'Certificate failed validation',
+      detail: REASONS[d.authError] || d.authError || 'Certificate failed validation',
     });
   } else if (d.isValid === true) {
     out.push({ severity: 'pass', title: 'SSL certificate valid' });

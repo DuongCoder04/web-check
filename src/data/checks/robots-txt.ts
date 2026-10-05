@@ -3,12 +3,14 @@ import type { Check } from '.';
 export default {
   title: 'Crawl Rules',
   categories: ['seo'],
-  summary: 'The crawl rules the site publishes for search engine bots',
+  summary: 'The crawl rules the site publishes for search engines and AI crawlers',
   description:
     'Robots.txt sits at the root of a domain and implements the Robots Exclusion ' +
     'Protocol, telling crawlers which paths to leave alone. It stops bots from ' +
     'hammering a site, but it will not keep a page out of search results, which is ' +
-    'what the noindex tag is for.',
+    'what the noindex tag is for. Many sites now also use it to turn away AI crawlers, ' +
+    'which collect pages to train models or answer questions. llms.txt is a newer, ' +
+    'separate file that offers AI tools a plain summary of the site instead.',
   use:
     'Because it is a list of things the owner would rather robots did not touch, it ' +
     'occasionally names directories nothing links to: admin panels, staging paths, ' +

@@ -3,10 +3,10 @@ import { readFile } from 'fs/promises';
 import trackerdb from '@ghostery/trackerdb';
 import { FiltersEngine, Request } from '@ghostery/adblocker';
 import middleware from './_common/middleware.js';
-import { httpGet, UA } from './_common/http.js';
+import { httpGet, isBotCheck } from './_common/http.js';
 import { createLogger } from './_common/logger.js';
 import { baseDomain } from './_common/parse-target.js';
-import { launchBrowser, closeBrowser, isBrowserMissing } from './_common/browser.js';
+import { launchBrowser, openPage, closeBrowser, isBrowserMissing } from './_common/browser.js';
 
 const log = createLogger('trackers');
 const loadTrackerDB = trackerdb.default || trackerdb;
@@ -45,7 +45,7 @@ const getEasyPrivacy = async () => {
 const isPage = (page, req) => req.isNavigationRequest() && req.frame() === page.mainFrame();
 
 // True for bot check pages (like Cloudflare's or AWS WAF's), which reload once passed
-const isChallenge = (res) => res.status() === 202 || res.headers()['cf-mitigated'] === 'challenge';
+const isChallenge = (res) => isBotCheck({ status: res.status(), headers: res.headers() });
 
 // Wait for a bot check to pass and the real page to arrive, else keep the check's response
 const passChallenge = (page, response) => {
@@ -57,7 +57,7 @@ const passChallenge = (page, response) => {
 const loadPage = async (url) => {
   const browser = await launchBrowser();
   try {
-    const page = await browser.newPage();
+    const page = await openPage(browser);
     const visit = { pageUrl: url, requests: new Map() };
     page.on('request', (req) => {
       if (!req.url().startsWith('http')) return;
@@ -69,7 +69,6 @@ const loadPage = async (url) => {
       }
     });
     page.on('dialog', (dialog) => dialog.dismiss().catch(() => {}));
-    await page.setUserAgent({ userAgent: UA });
     let response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT });
     if (isChallenge(response)) response = await passChallenge(page, response);
     await page.waitForNetworkIdle(IDLE).catch(() => {});

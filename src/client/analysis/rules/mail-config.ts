@@ -4,10 +4,13 @@ type Result = Omit<Finding, 'cardId'>;
 type DkimKey = { selector: string; bits: number | null };
 
 export interface MailData {
+  mxRecords?: { exchange: string }[];
   txtRecords?: string[][];
   spfLookups?: number;
   dmarcDomain?: string;
   dkim?: DkimKey[];
+  mtaSts?: { mode?: string; mx: string[] };
+  dane?: string[];
 }
 
 // Join each record's DNS chunks, keeping those that start with the given version tag
@@ -165,7 +168,85 @@ export const checkDkim = (d: MailData): Result => {
   return { severity: 'pass', title: `DKIM key found (${names(keys)})` };
 };
 
+// The hosts that receive this domain's mail, from its MX records
+export const mxHosts = (d: MailData) =>
+  (d.mxRecords || []).map((record) => record.exchange.toLowerCase()).filter(Boolean);
+
+// True when an MTA-STS mx line covers a host, a leading * standing for one label
+const coversHost = (pattern: string, host: string) =>
+  pattern.startsWith('*.')
+    ? host.split('.').slice(1).join('.') === pattern.slice(2)
+    : host === pattern;
+
+export const checkMtaSts = (d: MailData): Result | null => {
+  const hosts = mxHosts(d);
+  const policy = d.mtaSts;
+  if (!hosts.length) return null;
+  if (!policy) {
+    return {
+      severity: 'info',
+      title: 'MTA-STS not set up',
+      detail: 'Without it, mail sent to this domain can be forced back to unencrypted delivery',
+    };
+  }
+  if (!policy.mode) {
+    return {
+      severity: 'warning',
+      title: 'MTA-STS policy is unreadable or invalid',
+      detail:
+        'Senders need one v=STSv1 record, and a valid mta-sts.<domain>/.well-known/mta-sts.txt',
+    };
+  }
+  const patterns = policy.mx.map((pattern) => pattern.toLowerCase().replace(/\.$/, ''));
+  const missing = hosts.filter((host) => !patterns.some((pattern) => coversHost(pattern, host)));
+  if (missing.length && policy.mode !== 'none') {
+    return {
+      severity: policy.mode === 'enforce' ? 'issue' : 'warning',
+      title: `MTA-STS policy leaves out ${missing.join(', ')}`,
+      detail:
+        'Senders refuse to deliver to MX hosts an enforced policy leaves out, so add mx: lines',
+    };
+  }
+  if (policy.mode !== 'enforce') {
+    return {
+      severity: 'info',
+      title: `MTA-STS is in ${policy.mode} mode`,
+      detail: 'Switch the policy to mode: enforce once TLS reports show mail arriving encrypted',
+    };
+  }
+  return { severity: 'pass', title: 'MTA-STS policy enforced' };
+};
+
+const checkTlsRpt = (d: MailData): Result | null => {
+  if (!d.mtaSts && !d.dane?.length) return null;
+  if (findRecords(d.txtRecords, 'v=TLSRPTv1').length) {
+    return { severity: 'pass', title: 'TLS-RPT reports set up' };
+  }
+  return {
+    severity: 'info',
+    title: 'No TLS-RPT record',
+    detail: 'Publish a v=TLSRPTv1 TXT record on _smtp._tls, to hear when mail to you fails TLS',
+  };
+};
+
+const checkDane = (d: MailData): Result | null => {
+  const hosts = mxHosts(d);
+  if (!d.dane?.length) return null;
+  return {
+    severity: 'pass',
+    title: `DANE TLSA records on ${d.dane.length} of ${hosts.length} MX host(s)`,
+  };
+};
+
 const mailConfig: Analyzer = (d) =>
-  [checkSpf(d), checkDmarc(d), checkSubdomainDmarc(d), checkDkim(d)].filter((r) => r !== null);
+  [
+    checkSpf(d),
+    checkDmarc(d),
+    checkSubdomainDmarc(d),
+    checkDkim(d),
+    checkMtaSts(d),
+    checkTlsRpt(d),
+    checkDane(d),
+  ].filter((r) => r !== null);
 
 export default mailConfig;

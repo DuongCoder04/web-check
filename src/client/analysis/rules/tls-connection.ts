@@ -1,9 +1,12 @@
 import type { Analyzer } from '../types';
 
-// Inspect negotiated protocol, forward secrecy, ALPN, OCSP stapling
+const LEGACY: Record<string, string> = { TLSv1: 'TLS 1.0', 'TLSv1.1': 'TLS 1.1' };
+
+// Inspect negotiated protocol, legacy versions, forward secrecy, ALPN, OCSP stapling
 const tlsConnection: Analyzer = (d) => {
   const out: ReturnType<Analyzer> = [];
   const protocol = String(d.protocol || '');
+  const legacy = (d.versions || []).filter((v: string) => LEGACY[v]).map((v: string) => LEGACY[v]);
 
   if (/^SSLv|TLSv1(\.0)?$|TLSv1\.1/.test(protocol)) {
     out.push({
@@ -11,7 +14,15 @@ const tlsConnection: Analyzer = (d) => {
       title: `Outdated TLS protocol negotiated: ${protocol}`,
       detail: 'Disable TLS 1.0 and 1.1 on the server',
     });
-  } else if (protocol === 'TLSv1.2') {
+  } else if (legacy.length) {
+    out.push({
+      severity: 'issue',
+      title: `Server still accepts ${legacy.join(' and ')}`,
+      detail: 'Browsers dropped these in 2020 and they have known weaknesses, so disable them',
+    });
+  }
+
+  if (protocol === 'TLSv1.2') {
     out.push({ severity: 'info', title: 'TLS 1.2 in use, consider enabling TLS 1.3' });
   } else if (protocol === 'TLSv1.3') {
     out.push({ severity: 'pass', title: 'TLS 1.3 negotiated' });

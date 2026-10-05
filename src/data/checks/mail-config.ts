@@ -11,7 +11,9 @@ export default {
     'selector names, so "Not found" does not prove there is no key. DMARC tells ' +
     'receivers what to do with mail that fails both SPF and DKIM. A policy of none ' +
     "only monitors, so the checklist ticks DMARC once it's set to quarantine or " +
-    'reject. BIMI is an optional logo, and most domains skip it.',
+    'reject. BIMI is an optional logo, and most domains skip it. MTA-STS and DANE ' +
+    'tell other mail servers to only deliver to this domain over a verified, encrypted ' +
+    'connection, and TLS-RPT asks them to report when they cannot.',
   use:
     'Without a DMARC policy of quarantine or reject, anyone can send mail with the ' +
     "domain in the From line. SPF alone doesn't stop this, because it checks a hidden " +
