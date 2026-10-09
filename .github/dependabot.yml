@@ -34,6 +34,12 @@ updates:
         update-types: ['version-update:semver-major']
       - dependency-name: 'wappalyzer'
         update-types: ['version-update:semver-major']
+      - dependency-name: 'puppeteer'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'puppeteer-core'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@sparticuz/chromium'
+        update-types: ['version-update:semver-major']
       - dependency-name: 'chromium'
       - dependency-name: '@ghostery/adblocker'
 
