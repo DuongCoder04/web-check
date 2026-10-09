@@ -8,7 +8,7 @@ updates:
       default-days: 7
     open-pull-requests-limit: 5
     labels:
-      - 'dependencies'
+      - 'Dependencies'
     assignees:
       - lissy93
     versioning-strategy: increase
@@ -48,7 +48,7 @@ updates:
     schedule:
       interval: monthly
     labels:
-      - 'dependencies'
+      - 'Dependencies'
     assignees:
       - lissy93
     groups:
