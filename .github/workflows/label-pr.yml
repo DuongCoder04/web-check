@@ -26,24 +26,24 @@ jobs:
         with:
           github-token: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
-            // [ label, colour, matches Category field, matches changed file paths ]
+            // [ label, matches Category field, matches changed file paths ]
             const categories = [
-              ['New Check', '0e8a16', /new check/i, []],
-              ['Accuracy Improvement', '1d76db', /accura/i, [/^api\//]],
-              ['UI', 'e99695', /\bui\b|styl|design|frontend/i, [/^(src|public)\//]],
-              ['Deployment', '5319e7', /deploy|docker|host/i, [
+              ['New Check', /new check/i, []],
+              ['Accuracy Improvement', /accura/i, [/^api\//]],
+              ['UI', /\bui\b|styl|design|frontend/i, [/^(src|public)\//]],
+              ['Deployment', /deploy|docker|host/i, [
                 /^(Dockerfile|\.dockerignore|docker-compose\.yml|healthcheck\.js|server\.js)$/,
                 /^(netlify\.toml|vercel\.json|fly\.toml|render\.yaml)$/,
               ]],
-              ['Dependencies', '0366d6', /dependenc|\bdeps\b/i, [/^(package\.json|yarn\.lock)$/]],
-              ['Build and CI', 'fbca04', /build|\bci\b|workflow|refactor/i, [
+              ['Dependencies', /dependenc|\bdeps\b/i, [/^(package\.json|yarn\.lock)$/]],
+              ['Build and CI', /build|\bci\b|workflow|refactor/i, [
                 /^\.github\/(workflows\/|dependabot\.yml$)/,
                 /^\.config\//,
                 /^(astro\.config\.mjs|svelte\.config\.js|tsconfig\.json|\.yarnrc|\.gitignore)$/,
               ]],
-              ['Docs', '0075ca', /\bdocs?\b|documentation/i, [/\.md$/, /^\.github\/screenshots\//]],
-              ['Bug Fix', 'd73a4a', /bug ?fix|^fix|hot ?fix/i, []],
-              ['New Feature', 'a2eeef', /feature|feat\b/i, []],
+              ['Docs', /\bdocs?\b|documentation/i, [/\.md$/, /^\.github\/screenshots\//]],
+              ['Bug Fix', /bug ?fix|^fix|hot ?fix/i, []],
+              ['New Feature', /feature|feat\b/i, []],
             ];
 
             const pr = context.payload.pull_request;
@@ -57,7 +57,7 @@ jobs:
             const body = (pr.body || '').replace(/<!--[\s\S]*?-->/g, '');
             const stated = body.match(/^#+\s*Category\s*([^\n#]*)/m)?.[1].trim() || '';
             let labels = categories
-              .filter(([, , field]) => field.test(stated))
+              .filter(([, field]) => field.test(stated))
               .map(([label]) => label);
 
             // If no valid category was given, infer one from the files changed
@@ -66,7 +66,7 @@ jobs:
                 ...context.repo, pull_number: pr.number, per_page: 100,
               });
               const names = files.map((f) => f.filename);
-              const counts = categories.map(([label, , , paths]) =>
+              const counts = categories.map(([label, , paths]) =>
                 [label, names.filter((n) => paths.some((p) => p.test(n))).length]);
               const [label, hits] = counts.reduce((a, b) => (b[1] > a[1] ? b : a));
               const newCheck = /^api\/[^_][^/]*\.js$/;
@@ -82,11 +82,6 @@ jobs:
               return;
             }
 
-            // Create any labels that don't exist yet, in their category colour
-            for (const [name, color] of categories.filter(([l]) => labels.includes(l))) {
-              await github.rest.issues.createLabel({ ...context.repo, name, color }).catch((e) =>
-                e.status === 422 || core.warning(`Couldn't create ${name}: ${e.message}`));
-            }
             const issue_number = pr.number;
             await github.rest.issues.addLabels({ ...context.repo, issue_number, labels });
             core.info(`Applied label(s): ${labels.join(', ')}`);
