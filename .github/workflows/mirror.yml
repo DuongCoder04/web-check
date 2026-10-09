@@ -6,6 +6,8 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '30 3 * * 0' # At 03:30 on Sunday
+permissions:
+  contents: read
 jobs:
   codeberg:
     runs-on: ubuntu-latest
