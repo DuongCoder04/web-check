@@ -40,17 +40,17 @@ const related = relatedChecks(check);
   ]}
 >
   <section class="hero">
-    <p class="crumbs"><a href="/checks">All checks</a></p>
+    <p class="crumbs">
+      <a href="/checks">All checks</a>
+    </p>
     <h1>{info.title}</h1>
     <p class="summary">{info.summary}</p>
     <ul class="tags">
-      {
-        info.categories.map((category) => (
-          <li>
-            <a href={`/${category}`}>{categories[category].label}</a>
-          </li>
-        ))
-      }
+      {info.categories.map((category) => (
+        <li>
+          <a href={`/${category}`}>{categories[category].label}</a>
+        </li>
+      ))}
     </ul>
     <ScanForm tool={scanCheck} label={scanLabel} />
   </section>
@@ -72,22 +72,20 @@ const related = relatedChecks(check);
           </figure>
         )
       } -->
-      {
-        resources.length > 0 && (
-          <div class="resources">
-            <h2>Further reading</h2>
-            <ul>
-              {resources.map((resource) => (
-                <li>
-                  <a href={resource.link} target="_blank" rel="noreferrer">
-                    {resource.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )
-      }
+      {resources.length > 0 && (
+        <div class="resources">
+          <h2>Further reading</h2>
+          <ul>
+            {resources.map((resource) => (
+              <li>
+                <a href={resource.link} target="_blank" rel="noreferrer">
+                  {resource.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </aside>
   </div>
 

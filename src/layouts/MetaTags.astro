@@ -96,20 +96,14 @@ const makeBreadcrumbs = () => {
 <meta name="twitter:creator" content={twitter} />
 
 <!-- Non-tracking hit counter -->
-{
-  analytics.enable && (
-    <script is:inline defer data-domain={analytics.domain} src={analytics.script} />
-  )
-}
+{analytics.enable && (
+  <script is:inline defer data-domain={analytics.domain} src={analytics.script} />
+)}
 
 <!-- Schema.org markup for Google -->
-{
-  breadcrumbs && (
-    <script is:inline type="application/ld+json" set:html={JSON.stringify(makeBreadcrumbs())} />
-  )
-}
-{
-  customSchemaJson && (
-    <script is:inline type="application/ld+json" set:html={JSON.stringify(customSchemaJson)} />
-  )
-}
+{breadcrumbs && (
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(makeBreadcrumbs())} />
+)}
+{customSchemaJson && (
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(customSchemaJson)} />
+)}
