@@ -19,6 +19,7 @@ const MalwareCard = (props: { data: any; title: string; actionButtons: any }): J
   const phishTank = props.data.phishTank || {};
   const cloudmersive = props.data.cloudmersive || {};
   const safeBrowsing = props.data.safeBrowsing || {};
+  const netApi = props.data.netApi || {};
   const phished = phishTank.url0?.in_database === 'true' && phishTank.url0?.valid === 'true';
   return (
     <Card heading={props.title} actionButtons={props.actionButtons}>
@@ -70,6 +71,22 @@ const MalwareCard = (props: { data: any; title: string; actionButtons: any }): J
           <Row lbl="Status" val="Malware Identified" status="error" term="malware" />
           <Row lbl="First Seen" val={convertToDate(urlHaus.firstseen)} />
           <Row lbl="Bad URLs Count" val={formatNumber(urlHaus.url_count)} />
+        </>
+      )}
+      {typeof netApi.listed_now === 'boolean' && (
+        <Row
+          lbl="NetAPI Compromised Feed"
+          val={!netApi.listed_now}
+          yes={netApi.listed_ever ? 'Not Listed Now' : 'Not Listed'}
+          no="Listed"
+          term="malware"
+        />
+      )}
+      {netApi.listed_now && (
+        <>
+          <Row lbl="Listed Since" val={netApi.first_seen} />
+          <Row lbl="Matched Entry" val={netApi.matched_value} />
+          {netApi.block_reason && <Row lbl="Reason" val={netApi.block_reason} />}
         </>
       )}
       {urlHaus.urls && (

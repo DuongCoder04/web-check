@@ -22,6 +22,19 @@ const threats: Analyzer = (d) => {
   if (d.cloudmersive?.CleanResult === false) {
     out.push({ severity: 'critical', title: 'Cloudmersive flagged this site as unsafe' });
   }
+  if (d.netApi?.listed_now === true) {
+    out.push({
+      severity: 'critical',
+      title: 'Listed in the NetAPI compromised feed',
+      detail: `Matched as ${d.netApi.matched_value}, listed since ${d.netApi.first_seen}`,
+    });
+  } else if (d.netApi?.listed_ever === true) {
+    out.push({
+      severity: 'info',
+      title: 'Previously listed in the NetAPI compromised feed',
+      detail: `Last seen ${d.netApi.last_seen}`,
+    });
+  }
   if (!out.length) out.push({ severity: 'pass', title: 'No threat feed matches' });
   return out;
 };
