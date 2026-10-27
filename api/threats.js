@@ -1,6 +1,6 @@
 import xml2js from 'xml2js';
 import middleware from './_common/middleware.js';
-import { httpPost } from './_common/http.js';
+import { APP_UA, httpGet, httpPost } from './_common/http.js';
 import { parseTarget } from './_common/parse-target.js';
 import { requireEnv, upstreamError } from './_common/upstream.js';
 
@@ -77,19 +77,40 @@ const cloudmersive = async (url) => {
   }
 };
 
-// Aggregate four threat-feed lookups; skip the card if every source failed
+// NetAPI's compromised feed needs no key, and also matches a host through its parent domains
+const netApi = async (url) => {
+  const { hostname } = parseTarget(url);
+  try {
+    const res = await httpGet('https://netapi.com/api-json/', {
+      params: { method: 'compromised-check', value: hostname },
+      headers: { 'User-Agent': APP_UA },
+    });
+    return res.data;
+  } catch (error) {
+    return upstreamError(error, 'NetAPI');
+  }
+};
+
+// Aggregate five threat-feed lookups; skip the card if every source failed
 const threatsHandler = async (url) => {
   const sources = await Promise.all([
     safeBrowsing(url),
     urlHaus(url),
     phishTank(url),
     cloudmersive(url),
+    netApi(url),
   ]);
-  const [safe, haus, phish, cloud] = sources;
+  const [safe, haus, phish, cloud, net] = sources;
   if (sources.every((s) => s?.error || s?.skipped)) {
     return { skipped: 'No threat sources returned data for this host' };
   }
-  return { safeBrowsing: safe, urlHaus: haus, phishTank: phish, cloudmersive: cloud };
+  return {
+    safeBrowsing: safe,
+    urlHaus: haus,
+    phishTank: phish,
+    cloudmersive: cloud,
+    netApi: net,
+  };
 };
 
 export const handler = middleware(threatsHandler);
