@@ -82,11 +82,11 @@ const MalwareCard = (props: { data: any; title: string; actionButtons: any }): J
           term="malware"
         />
       )}
-      {netApi.listed_ever && (
+      {netApi.listed_now && (
         <>
-          <Row lbl="Feed Last Seen" val={netApi.last_seen} />
-          {netApi.matched_value && <Row lbl="Feed Entry" val={netApi.matched_value} />}
-          {netApi.block_reason && <Row lbl="Feed Source" val={netApi.block_reason} />}
+          <Row lbl="Listed Since" val={netApi.first_seen} />
+          <Row lbl="Matched Entry" val={netApi.matched_value} />
+          {netApi.block_reason && <Row lbl="Reason" val={netApi.block_reason} />}
         </>
       )}
       {urlHaus.urls && (

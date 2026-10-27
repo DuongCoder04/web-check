@@ -84,6 +84,7 @@ const netApi = async (url) => {
     const res = await httpGet('https://netapi.com/api-json/', {
       params: { method: 'compromised-check', value: hostname },
       headers: { 'User-Agent': APP_UA },
+      timeout: 3000,
     });
     return res.data;
   } catch (error) {

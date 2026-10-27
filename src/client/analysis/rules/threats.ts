@@ -26,7 +26,7 @@ const threats: Analyzer = (d) => {
     out.push({
       severity: 'critical',
       title: 'Listed in the NetAPI compromised feed',
-      detail: `Reported in the last 24 hours (as ${d.netApi.matched_value})`,
+      detail: `Matched as ${d.netApi.matched_value}, listed since ${d.netApi.first_seen}`,
     });
   } else if (d.netApi?.listed_ever === true) {
     out.push({
