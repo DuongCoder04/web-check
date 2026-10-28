@@ -25,7 +25,11 @@ import NoResults from 'client/components/misc/NoResults';
 import ResultsMasonryGrid from 'client/components/misc/ResultsMasonryGrid';
 import ViewRaw from 'client/components/misc/ViewRaw';
 
-import { determineAddressType, type AddressType } from 'client/utils/address-type-checker';
+import {
+  determineAddressType,
+  normalizeAddress,
+  type AddressType,
+} from 'client/utils/address-type-checker';
 import { hasData } from 'client/utils/result-processor';
 import keys from 'client/utils/get-keys';
 import { getSetting } from 'client/utils/settings';
@@ -252,7 +256,7 @@ const Results = (props: { address?: string }): JSX.Element => {
               {
                 label: 'Open in its own page',
                 icon: faArrowUpRightFromSquare,
-                href: `/${expanded.card.id}/${address}`,
+                href: `/${expanded.card.id}/${normalizeAddress(address)}`,
               },
               { label: 'Close', icon: faXmark, onClick: closeDetail },
             ]}
