@@ -71,47 +71,80 @@ const Wrapper = styled(Card)`
       content: '▼';
     }
   }
-  ul.findings {
-    list-style: none;
-    margin: 0.25rem 0 0.5rem 0;
-    padding: 0;
-    li {
-      display: grid;
-      grid-template-columns: 1.25rem 1fr;
-      gap: 0.5rem;
-      align-items: baseline;
-      padding: 0.3rem 0;
-      .glyph {
-        font-weight: 700;
-        line-height: 1;
-        text-align: center;
-        align-self: center;
+`;
+
+const List = styled.ul`
+  list-style: none;
+  margin: 0.25rem 0 0.5rem 0;
+  padding: 0;
+  li {
+    display: grid;
+    grid-template-columns: 1.25rem 1fr;
+    gap: 0.5rem;
+    align-items: baseline;
+    padding: 0.3rem 0;
+    .glyph {
+      font-weight: 700;
+      line-height: 1;
+      text-align: center;
+      align-self: center;
+    }
+    .body {
+      button.jump {
+        background: none;
+        border: none;
+        color: ${colors.textColor};
+        font-family: inherit;
+        font-size: inherit;
+        padding: 0;
+        text-align: left;
+        cursor: pointer;
+        &:hover,
+        &:focus-visible {
+          color: ${colors.primaryIncreasedContrast};
+          outline: none;
+        }
       }
-      .body {
-        button.jump {
-          background: none;
-          border: none;
-          color: ${colors.textColor};
-          font-family: inherit;
-          font-size: inherit;
-          padding: 0;
-          text-align: left;
-          cursor: pointer;
-          &:hover,
-          &:focus-visible {
-            color: ${colors.primaryIncreasedContrast};
-            outline: none;
-          }
-        }
-        .detail {
-          color: ${colors.textColorSecondary};
-          font-size: 0.85rem;
-          display: block;
-        }
+      .detail {
+        color: ${colors.textColorSecondary};
+        font-size: 0.85rem;
+        display: block;
       }
     }
   }
 `;
+
+// Each finding beside its severity icon, as a link to its card when there's one to jump to
+export const FindingList = (props: {
+  findings: Finding[];
+  onJumpTo?: (cardId: string) => void;
+}) => {
+  const { findings, onJumpTo } = props;
+  return (
+    <List>
+      {findings.map((f, i) => {
+        const { label, color, icon } = META[f.severity];
+        return (
+          <li key={`${f.cardId}-${i}`}>
+            <span className="glyph">
+              <Icon icon={icon} color={color} label={label} />
+            </span>
+            <span className="body">
+              {onJumpTo ? (
+                <button type="button" className="jump" onClick={() => onJumpTo(f.cardId)}>
+                  {f.title}
+                </button>
+              ) : (
+                f.title
+              )}
+              {f.detail && <span className="detail">{f.detail}</span>}
+            </span>
+          </li>
+        );
+      })}
+    </List>
+  );
+};
 
 interface Props {
   findings: Finding[];
@@ -153,21 +186,7 @@ const AdvisoryPanel = ({ findings, onJumpTo }: Props): ReactNode => {
               {meta.label}
               <span className="count">({items.length})</span>
             </summary>
-            <ul className="findings">
-              {items.map((f, i) => (
-                <li key={`${f.cardId}-${i}`}>
-                  <span className="glyph">
-                    <Icon icon={meta.icon} color={meta.color} label={meta.label} />
-                  </span>
-                  <span className="body">
-                    <button type="button" className="jump" onClick={() => onJumpTo(f.cardId)}>
-                      {f.title}
-                    </button>
-                    {f.detail && <span className="detail">{f.detail}</span>}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <FindingList findings={items} onJumpTo={onJumpTo} />
           </details>
         );
       })}

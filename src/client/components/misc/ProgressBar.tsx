@@ -2,7 +2,6 @@ import { useState, useEffect, type ReactNode } from 'react';
 import styled from '@emotion/styled';
 import colors from 'client/styles/colors';
 import Card from 'client/components/Form/Card';
-import Heading from 'client/components/Form/Heading';
 import { formatNumber } from 'client/utils/format';
 
 export type LoadingState = 'success' | 'loading' | 'skipped' | 'error' | 'timed-out';
@@ -270,22 +269,9 @@ const FailedJobActionButton = styled.button`
   }
 `;
 
-const ErrorModalContent = styled.div`
-  p {
-    margin: 0;
-  }
-  pre {
-    color: ${colors.danger};
-    &.info {
-      color: ${colors.warning};
-    }
-  }
-`;
-
 interface JobListItemProps {
   job: LoadingJob;
-  showJobDocs: (id: string) => void;
-  showErrorModal: (job: LoadingJob, isInfo?: boolean) => void;
+  showDetails: (id: string) => void;
 }
 
 const REASON_LABEL: Partial<Record<LoadingState, string>> = {
@@ -295,13 +281,13 @@ const REASON_LABEL: Partial<Record<LoadingState, string>> = {
 };
 
 // One row in the details list, showing job state, time and any actions
-const JobListItem = ({ job, showJobDocs, showErrorModal }: JobListItemProps): ReactNode => {
+const JobListItem = ({ job, showDetails }: JobListItemProps): ReactNode => {
   const { id, name, state, timeTaken, retry, error } = job;
   const canRetry = retry && state !== 'success' && state !== 'loading';
   const reasonLabel = error ? REASON_LABEL[state] : undefined;
   return (
     <li>
-      <button type="button" className="docs" onClick={() => showJobDocs(id)}>
+      <button type="button" className="docs" onClick={() => showDetails(id)}>
         {STATE_META[state].emoji} {name}
       </button>
       <StateLabel color={STATE_META[state].color}> ({state})</StateLabel>
@@ -312,10 +298,7 @@ const JobListItem = ({ job, showJobDocs, showErrorModal }: JobListItemProps): Re
         </FailedJobActionButton>
       )}
       {reasonLabel && (
-        <FailedJobActionButton
-          type="button"
-          onClick={() => showErrorModal(job, state === 'skipped')}
-        >
+        <FailedJobActionButton type="button" onClick={() => showDetails(id)}>
           {reasonLabel}
         </FailedJobActionButton>
       )}
@@ -403,12 +386,11 @@ const SummaryText = ({ jobs, elapsedMs }: SummaryTextProps): ReactNode => {
 
 interface ProgressLoaderProps {
   loadStatus: LoadingJob[];
-  showModal: (err: ReactNode) => void;
-  showJobDocs: (id: string) => void;
+  showDetails: (id: string) => void;
 }
 
-// Top-of-results progress bar with collapsible per-job detail and error modals
-const ProgressLoader = ({ loadStatus, showModal, showJobDocs }: ProgressLoaderProps): ReactNode => {
+// Top-of-results progress bar with collapsible per-job detail
+const ProgressLoader = ({ loadStatus, showDetails }: ProgressLoaderProps): ReactNode => {
   const [hideLoader, setHideLoader] = useState(true);
   const [elapsedMs, setElapsedMs] = useState(0);
   const percentages = stateToPercent(loadStatus);
@@ -420,21 +402,6 @@ const ProgressLoader = ({ loadStatus, showModal, showJobDocs }: ProgressLoaderPr
     const id = setInterval(() => setElapsedMs((v) => v + 100), 100);
     return () => clearInterval(id);
   }, [isDone]);
-
-  const showErrorModal = (job: LoadingJob, isInfo?: boolean) => {
-    const detailsLabel = job.state === 'skipped' ? 'Reason:' : 'Server response:';
-    showModal(
-      <ErrorModalContent>
-        <Heading as="h3">Details for {job.name}</Heading>
-        <p>
-          The {job.name} job ended with state '{job.state}'
-          {job.timeTaken !== undefined ? ` after ${formatNumber(job.timeTaken)} ms` : ''}.{' '}
-          {detailsLabel}
-        </p>
-        <pre className={isInfo ? 'info' : 'error'}>{job.error}</pre>
-      </ErrorModalContent>,
-    );
-  };
 
   return (
     <div>
@@ -470,12 +437,7 @@ const ProgressLoader = ({ loadStatus, showModal, showJobDocs }: ProgressLoaderPr
               <summary>Show Details</summary>
               <ul>
                 {loadStatus.map((job) => (
-                  <JobListItem
-                    key={job.id}
-                    job={job}
-                    showJobDocs={showJobDocs}
-                    showErrorModal={showErrorModal}
-                  />
+                  <JobListItem key={job.id} job={job} showDetails={showDetails} />
                 ))}
               </ul>
               {loadStatus.some((j) => j.state === 'error') && (

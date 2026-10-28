@@ -4,6 +4,7 @@ import colors from 'client/styles/colors';
 import Heading from 'client/components/Form/Heading';
 import { StatusIcon, type Status } from 'client/components/misc/Icon';
 import Tooltip from 'client/components/misc/Tooltip';
+import CopyButton from 'client/components/misc/CopyButton';
 import { formatDate } from 'client/utils/format';
 import { termText, type TermId } from '@/data/glossary';
 
@@ -42,7 +43,7 @@ export const StyledRow = styled.div`
     font-weight: bold;
     flex: 1;
     min-width: calc(35% - 0.5rem);
-    white-space: nowrap;
+    white-space: var(--row-wrap, nowrap);
     overflow: hidden;
     text-overflow: ellipsis;
   }
@@ -52,15 +53,21 @@ export const StyledRow = styled.div`
     justify-content: flex-end;
     gap: 0.4em;
     min-width: 0;
-    max-width: min(16rem, 65%);
+    max-width: var(--row-value-width, min(16rem, 65%));
     > span,
     > a {
-      white-space: nowrap;
+      white-space: var(--row-wrap, nowrap);
       overflow: hidden;
       text-overflow: ellipsis;
     }
     a {
       color: ${colors.primaryIncreasedContrast};
+    }
+  }
+  /* Copy buttons wait for a hover or focus, unless there's no way to hover */
+  @media (hover: hover) {
+    &:not(:hover, :focus-within) .copy {
+      opacity: 0;
     }
   }
 `;
@@ -105,6 +112,9 @@ const PlainText = styled.pre`
   word-wrap: break-word;
   border-radius: 4px;
   padding: 0.25rem;
+  .copy {
+    float: right;
+  }
 `;
 
 const List = styled.ul`
@@ -149,13 +159,14 @@ const hint = ({ reason, term }: RowProps, status: Status) =>
     </>
   );
 
-// A value's text, as a link when given one, then its status icon
+// A value's copy button and text, as a link when given one, then its status icon
 const Value = (props: RowProps) => {
-  const { val, link } = props;
+  const { lbl, val, link } = props;
   const status = props.status || (typeof val === 'boolean' ? (val ? 'pass' : 'error') : undefined);
   const text = valueText(props);
   return (
     <>
+      {text && typeof val !== 'boolean' && <CopyButton text={text} name={lbl} />}
       {link ? (
         <a href={link} target="_blank" rel="noreferrer">
           {text}
@@ -257,15 +268,16 @@ const Row = (props: RowProps) => {
         </span>
       )}
       {val != null && (
-        <span
-          className="val"
-          title={title || text}
-          onClick={() => navigator.clipboard.writeText(text)}
-        >
+        <span className="val" title={title || text}>
           <Value {...props} />
         </span>
       )}
-      {plaintext && <PlainText>{plaintext}</PlainText>}
+      {plaintext && (
+        <PlainText>
+          <CopyButton text={plaintext} name={lbl} />
+          {plaintext}
+        </PlainText>
+      )}
       {listResults && (
         <List>
           {listResults.map((listItem, listIndex) => (
