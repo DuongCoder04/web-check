@@ -5,6 +5,7 @@ import colors from 'client/styles/colors';
 const Trigger = styled.span`
   position: relative;
   display: inline-flex;
+  flex: none;
   cursor: help;
   border-radius: 50%;
   /* A larger hit area than the icon, for easier tapping */
@@ -97,7 +98,7 @@ const GAP = 8;
 // How long the pointer rests before the tip opens, or is away before it closes
 const DELAY = 100;
 
-// Stops a click in the tooltip copying the row's value or opening its details
+// Stops a click in the tooltip opening its row's details
 const keep = (e: SyntheticEvent) => {
   e.preventDefault();
   e.stopPropagation();

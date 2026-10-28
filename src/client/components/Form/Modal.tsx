@@ -1,105 +1,102 @@
-import React from 'react';
-import type { ReactNode } from 'react';
-import ReactDOM from 'react-dom';
+import { useEffect, useRef, type MouseEvent, type ReactNode } from 'react';
 import styled from '@emotion/styled';
 import colors from 'client/styles/colors';
-import Button from 'client/components/Form/Button';
 
 interface ModalProps {
   children: ReactNode;
   isOpen: boolean;
   closeModal: () => void;
+  label?: string;
 }
 
-const Overlay = styled.div`
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.5);
-  animation: fadeIn 0.5s;
-
-  @keyframes fadeIn {
-    0% {
-      opacity: 0;
-    }
-    100% {
-      opacity: 1;
-    }
-  }
-`;
-
-const ModalWindow = styled.div`
-  width: 80%;
-  max-width: 700px;
-  background: ${colors.backgroundRaised};
-  padding: 2rem;
-  border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  position: relative;
-  animation: appear 0.5s;
-  color: ${colors.textColor};
+// Emotion drops props it doesn't know yet, like closedby, so forward them all
+const Dialog = styled('dialog', { shouldForwardProp: () => true })`
+  width: min(72rem, 100% - 2rem);
+  max-height: calc(100% - 4rem);
+  margin: auto;
+  padding: 0;
   border: 1px solid ${colors.primaryTransparent};
-  max-height: 80%;
-  overflow-y: auto;
+  border-radius: 4px;
+  background: ${colors.backgroundRaised};
+  color: ${colors.textColor};
   line-height: 1.5;
-  @keyframes appear {
-    0% {
+  box-shadow: 0 4px 30px var(--shadow-color);
+  overscroll-behavior: contain;
+  outline: none;
+  translate: 0 1rem;
+  opacity: 0;
+  transition:
+    opacity 0.25s ease,
+    translate 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    display 0.35s allow-discrete,
+    overlay 0.35s allow-discrete;
+  &[open] {
+    translate: 0;
+    opacity: 1;
+    @starting-style {
+      translate: 0 1rem;
       opacity: 0;
-      transform: scale(0.9);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1);
     }
   }
-  pre {
-    white-space: break-spaces;
-    font-family: var(--font-mono);
+  &::backdrop {
+    background: color-mix(in srgb, ${colors.backgroundSunken} 60%, transparent);
+    backdrop-filter: blur(5px);
+    opacity: 0;
+    transition: inherit;
+  }
+  &[open]::backdrop {
+    opacity: 1;
+    @starting-style {
+      opacity: 0;
+    }
+  }
+  /* Phones get the whole screen */
+  @media (max-width: 599px) {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    border: none;
+    border-radius: 0;
+  }
+  /* Keep the page still while it's up */
+  html:has(&[open]) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
   }
 `;
 
-const Modal: React.FC<ModalProps> = ({ children, isOpen, closeModal }) => {
-  const handleOverlayClick = (e: React.MouseEvent<HTMLElement>) => {
-    if (e.target === e.currentTarget) {
-      closeModal();
+// A native dialog, so the browser handles focus, Escape and clicking outside
+const Modal = ({ children, isOpen, closeModal, label }: ModalProps) => {
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  // Focus the dialog itself, not its first button, as the content can be long
+  useEffect(() => {
+    const el = dialog.current;
+    if (!el) return;
+    if (!isOpen) el.close();
+    else if (!el.open) {
+      el.showModal();
+      el.focus();
     }
+  }, [isOpen]);
+
+  // Safari has no closedby yet, so it closes on backdrop clicks this way instead
+  const closeOnBackdrop = (e: MouseEvent) => {
+    if (!('closedBy' in HTMLDialogElement.prototype) && e.target === e.currentTarget) closeModal();
   };
 
-  React.useEffect(() => {
-    const handleEscPress = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        closeModal();
-      }
-    };
-
-    if (isOpen) {
-      window.addEventListener('keydown', handleEscPress);
-    }
-
-    return () => {
-      window.removeEventListener('keydown', handleEscPress);
-    };
-  }, [isOpen, closeModal]);
-
-  if (!isOpen) {
-    return null;
-  }
-
-  return ReactDOM.createPortal(
-    <Overlay onClick={handleOverlayClick}>
-      <ModalWindow>
-        {children}
-        <Button onClick={closeModal} styles="width: fit-content;float: right;">
-          Close
-        </Button>
-      </ModalWindow>
-    </Overlay>,
-    document.body,
+  return (
+    <Dialog
+      ref={dialog}
+      aria-label={label}
+      tabIndex={-1}
+      closedby="any"
+      onClose={closeModal}
+      onClick={closeOnBackdrop}
+    >
+      {children}
+    </Dialog>
   );
 };
 

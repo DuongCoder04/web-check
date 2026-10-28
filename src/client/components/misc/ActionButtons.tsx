@@ -1,60 +1,65 @@
 import styled from '@emotion/styled';
-import Button from 'client/components/Form/Button';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import colors from 'client/styles/colors';
+import Icon from 'client/components/misc/Icon';
 
-const ActionButtonContainer = styled.div`
+export interface Action {
+  label: string;
+  icon: IconDefinition;
+  onClick?: () => void;
+  href?: string;
+}
+
+const Container = styled.div`
   position: absolute;
   top: 0.25rem;
   right: 0.25rem;
   opacity: 0.75;
   display: flex;
   gap: 0.125rem;
-  align-items: baseline;
 `;
 
-interface Action {
-  label: string;
-  icon: string;
-  onClick: () => void;
-}
-
-const actionButtonStyles = `
-  padding: 0 0.25rem;
-  font-size: 1rem;
-  text-align: center;
+const Control = styled.a`
+  display: grid;
+  place-items: center;
   width: 1.5rem;
   height: 1.5rem;
-  color: ${colors.textColor};
+  padding: 0;
+  border: none;
+  border-radius: 4px;
   background: none;
-  box-shadow: none;
+  color: ${colors.textColor};
+  font-size: 0.85rem;
+  cursor: pointer;
   transition: all 0.2s ease-in-out;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  &:hover {
+  &:hover,
+  &:focus-visible {
     color: ${colors.primary};
     background: ${colors.backgroundSunken};
-    box-shadow: none;
+  }
+  /* Bigger targets for touch */
+  @media (pointer: coarse) {
+    width: 2rem;
+    height: 2rem;
   }
 `;
 
-const ActionButtons = (props: { actions: any }): JSX.Element => {
-  const actions = props.actions;
-  if (!actions) return <></>;
-  return (
-    <ActionButtonContainer>
-      {actions.map((action: Action, index: number) => (
-        <Button
-          key={`action-${index}`}
-          styles={actionButtonStyles}
-          onClick={action.onClick}
-          title={action.label}
-        >
-          {action.icon}
-        </Button>
-      ))}
-    </ActionButtonContainer>
-  );
-};
+// Small icon buttons in a corner, or links to a new tab when given somewhere to go
+const ActionButtons = ({ actions, className }: { actions: Action[]; className?: string }) => (
+  <Container className={className}>
+    {actions.map(({ label, icon, onClick, href }) => (
+      <Control
+        key={label}
+        {...(href
+          ? { href, target: '_blank', rel: 'noreferrer' }
+          : { as: 'button' as const, type: 'button' as const, onClick })}
+        title={label}
+        aria-label={label}
+      >
+        <Icon icon={icon} />
+      </Control>
+    ))}
+  </Container>
+);
 
 export default ActionButtons;
