@@ -250,7 +250,10 @@ export const ListRow = (props: { list: string[]; title: string }) => {
   return (
     <Section title={title}>
       {list.map((entry, index) => (
-        <Row key={`${entry}-${index}`}>{entry}</Row>
+        <Row key={`${entry}-${index}`}>
+          {entry}
+          <CopyButton text={entry} />
+        </Row>
       ))}
     </Section>
   );
