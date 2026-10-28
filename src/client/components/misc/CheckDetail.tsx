@@ -154,7 +154,7 @@ const CheckDetail = ({ card, data, entry, ready, findings, retry, actions = [] }
         )}
         <h3>Results</h3>
         {ready ? (
-          <ErrorBoundary title={card.title}>
+          <ErrorBoundary key={card.id} title={card.title}>
             <card.Component data={data} />
           </ErrorBoundary>
         ) : (
